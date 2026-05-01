@@ -1,0 +1,138 @@
+/* Paleta de colores profesional */
+:root {
+  --primary: #0ea5e9;
+  --primary-dark: #0369a1;
+  --secondary: #64748b;
+  --bg-main: #f8fafc;
+  --card-bg: #ffffff;
+  --text-dark: #1e293b;
+  --text-light: #64748b;
+  --success: #10b981;
+  --danger: #ef4444;
+  --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --radius: 12px;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', -apple-system, sans-serif;
+  background-color: var(--bg-main);
+  color: var(--text-dark);
+}
+
+/* Contenedor unificado para Pacientes y Médicos */
+.main-container {
+  max-width: 1100px;
+  margin: 40px auto;
+  padding: 0 20px;
+}
+
+/* Tarjetas Profesionales */
+.glass-card {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  border: 1px solid #e2e8f0;
+  box-shadow: var(--shadow);
+  padding: 24px;
+  margin-bottom: 20px;
+  transition: transform 0.2s ease;
+}
+
+.glass-card:hover {
+  transform: translateY(-2px);
+}
+
+/* Botones Modernos */
+.btn-modern {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-primary { background-color: var(--primary); color: white; }
+.btn-primary:hover { background-color: var(--primary-dark); }
+
+/* Badges de estado */
+.badge {
+  padding: 4px 12px;
+  border-radius: 99px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.slot-offered {
+  background-color: #fef3c7; /* Amarillo suave */
+  color: #92400e; /* Marrón/Naranja oscuro */
+  border-color: #f59e0b;
+  cursor: pointer;
+}
+
+.slot-occupied {
+  background-color: #fee2e2; /* Rojo */
+  color: #b91c1c;
+  border-color: #f87171;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+
+/* Estilos para selectores y opciones deshabilitadas */
+select {
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background-color: white;
+  font-size: 14px;
+  color: var(--text-dark);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+select:hover {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+}
+
+select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+}
+
+/* Opciones deshabilitadas más oscuras */
+option:disabled {
+  color: #94a3b8;
+  background-color: #f1f5f9;
+  font-style: italic;
+  cursor: not-allowed;
+}
+
+option:enabled {
+  color: var(--text-dark);
+  background-color: white;
+  cursor: pointer;
+}
+
+/* Animación para campanita con notificaciones */
+@keyframes ring {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  10%, 20% {
+    transform: rotate(-10deg);
+  }
+  30%, 50%, 70%, 90% {
+    transform: rotate(10deg);
+  }
+  40%, 60%, 80% {
+    transform: rotate(-10deg);
+  }
+}
+
+.bell-ring {
+  animation: ring 0.5s ease-in-out infinite;
+  transform-origin: top center;
+}
