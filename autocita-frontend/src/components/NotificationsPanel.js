@@ -1,0 +1,72 @@
+import React from 'react';
+
+function NotificationsPanel({ offers, onRefresh, close, authHeader }) {
+  
+  const handleAction = async (id, accepted) => {
+    try {
+      console.log(`📤 Enviando respuesta: Cita ID ${id}, Aceptada: ${accepted}`);
+      
+      const res = await fetch(`http://localhost:8080/api/appointments/${id}/respond-offer?accepted=${accepted}`, {
+        method: 'POST',
+        headers: { 'Authorization': authHeader }
+      });
+      
+      if (res.ok) {
+        console.log(`✅ Respuesta procesada exitosamente`);
+        onRefresh(); // Refresca App.js
+        if (offers.length === 1) close(); // Cierra si era la última
+      } else {
+        const errorText = await res.text();
+        console.error(`❌ Error en la respuesta: ${res.status} - ${errorText}`);
+        alert(`Error al procesar tu respuesta: ${errorText}`);
+      }
+    } catch (err) {
+      console.error("❌ Error de conexión al responder oferta:", err);
+      alert("Error de conexión. Por favor, intenta de nuevo.");
+    }
+  };
+
+  return (
+    <div style={panelStyle} onClick={(e) => e.stopPropagation()}>
+      <div style={headerStyle}>
+        <span style={{ fontWeight: '700' }}>Notificaciones</span>
+        <button onClick={close} style={closeBtn}>✕</button>
+      </div>
+      <div style={{ maxHeight: '350px', overflowY: 'auto' }}>
+        {offers.length === 0 ? (
+          <div style={emptyStyle}>No tienes avisos pendientes</div>
+        ) : (
+          offers.map(offer => (
+            <div key={offer.id} style={itemStyle}>
+              <div style={{ fontSize: '0.85rem', marginBottom: '8px' }}>
+                🔔 <strong>¡Hueco disponible!</strong> en {offer.doctor.specialty.replace('_', ' ')}
+              </div>
+              <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '10px' }}>
+                Con el Dr. {offer.doctor.lastName} <br/>
+                {new Date(offer.startTime).toLocaleString([], { dateStyle: 'long', timeStyle: 'short' })}
+              </div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button onClick={() => handleAction(offer.id, true)} style={btnAccept}>✓ Aceptar</button>
+                <button onClick={() => handleAction(offer.id, false)} style={btnReject}>✕ Rechazar</button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
+
+const panelStyle = {
+  position: 'absolute', top: '45px', right: '0', width: '300px', 
+  backgroundColor: 'white', borderRadius: '12px', border: '1px solid #e2e8f0',
+  boxShadow: '0 10px 25px rgba(0,0,0,0.1)', zIndex: 1100, overflow: 'hidden'
+};
+const headerStyle = { padding: '12px 15px', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#f8fafc' };
+const emptyStyle = { padding: '30px 15px', textAlign: 'center', color: '#94a3b8', fontSize: '0.9rem' };
+const itemStyle = { padding: '15px', borderBottom: '1px solid #f1f5f9', backgroundColor: '#fffbeb' };
+const closeBtn = { background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8' };
+const btnAccept = { flex: 1, padding: '6px', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 'bold' };
+const btnReject = { flex: 1, padding: '6px', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 'bold' };
+
+export default NotificationsPanel;
