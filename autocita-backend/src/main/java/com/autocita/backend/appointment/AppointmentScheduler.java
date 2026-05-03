@@ -43,4 +43,20 @@ public class AppointmentScheduler {
             appointmentService.handleReassignmentResponse(app.getId(), false, true);
         }
     }
+
+    // Marca como COMPLETED las citas ASSIGNED cuya hora de fin
+    // (startTime + 60 min de duración) ya ha pasado.
+    @Scheduled(fixedRate = 60000)
+    public void completePastAppointments() {
+        LocalDateTime limit = LocalDateTime.now().minusHours(1);
+
+        List<Appointment> pastAssigned = appointmentRepository.findPastAssignedAppointments(limit);
+
+        for (Appointment app : pastAssigned) {
+            System.out.println("Cita COMPLETED automáticamente -> ID " + app.getId() +
+                    " (paciente " + app.getPatient().getEmail() + ")");
+            app.setStatus(AppointmentStatus.COMPLETED);
+            appointmentRepository.save(app);
+        }
+    }
 }
