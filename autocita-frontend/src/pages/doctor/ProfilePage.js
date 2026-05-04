@@ -43,26 +43,20 @@ function ProfilePage({ authHeader, doctorId }) {
   };
 
   const handleUpdate = async (updatedFields) => {
-    if (!authHeader) {
-      throw new Error('No autenticado');
+    if (!authHeader) return false;
+    try {
+      const resp = await fetch('http://localhost:8080/api/doctors/me', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: authHeader },
+        body: JSON.stringify(updatedFields)
+      });
+      if (!resp.ok) return false;
+      const updated = await resp.json();
+      setDoctorData(updated);
+      return true;
+    } catch {
+      return false;
     }
-
-    const resp = await fetch('http://localhost:8080/api/doctors/me', {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: authHeader
-      },
-      body: JSON.stringify(updatedFields)
-    });
-
-    if (!resp.ok) {
-      throw new Error(`No se pudo actualizar el perfil del médico: ${resp.status}`);
-    }
-
-    const updated = await resp.json();
-    setDoctorData(updated);
-    return true;
   };
 
   return (

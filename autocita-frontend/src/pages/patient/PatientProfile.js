@@ -1,9 +1,14 @@
 import React from 'react';
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PHONE_RE = /^\d{9}$/;
+const NAME_RE = /\d/;
+
 function PatientProfile({ patientData, onSave }) {
     const [isEditing, setIsEditing] = React.useState(false);
     const [saving, setSaving] = React.useState(false);
     const [saveError, setSaveError] = React.useState(null);
+    const [localUpdatedAt, setLocalUpdatedAt] = React.useState(null);
 
     const [form, setForm] = React.useState({
         firstName: '',
@@ -22,7 +27,7 @@ function PatientProfile({ patientData, onSave }) {
                 email: patientData.email || patientData.user?.email || '',
                 phone: patientData.phone || patientData.user?.phone || '',
                 address: patientData.address || '',
-                gender: patientData.gender || patientData.gender || 'OTHER'
+                gender: patientData.gender || 'OTHER'
             });
         }
     }, [patientData]);
@@ -53,7 +58,7 @@ function PatientProfile({ patientData, onSave }) {
     };
 
     const createdAt = formatDate(patientData.createdAt || patientData.created_at);
-    const updatedAt = formatDate(patientData.updatedAt || patientData.updated_at);
+    const updatedAt = localUpdatedAt || formatDate(patientData.updatedAt || patientData.updated_at);
 
     const inputStyle = {
         width: '100%',
@@ -98,20 +103,47 @@ function PatientProfile({ patientData, onSave }) {
         setForm({ ...form, [field]: event.target.value });
     };
 
+    const validate = () => {
+        if (!form.firstName.trim() || NAME_RE.test(form.firstName)) {
+            return 'El nombre no puede estar vacío ni contener números.';
+        }
+        if (!form.lastName.trim() || NAME_RE.test(form.lastName)) {
+            return 'El apellido no puede estar vacío ni contener números.';
+        }
+        if (!EMAIL_RE.test(form.email)) {
+            return 'El email no tiene un formato válido (ej: usuario@dominio.com).';
+        }
+        if (!PHONE_RE.test(form.phone)) {
+            return 'El teléfono debe tener exactamente 9 dígitos numéricos.';
+        }
+        return null;
+    };
+
     const handleSave = async () => {
+        const validationError = validate();
+        if (validationError) {
+            setSaveError(validationError);
+            return;
+        }
         setSaving(true);
         setSaveError(null);
-        const success = await onSave({
-            firstName: form.firstName,
-            lastName: form.lastName,
-            email: form.email,
-            phone: form.phone,
-            address: form.address,
-            gender: form.gender
-        });
+        let success = false;
+        try {
+            success = await onSave({
+                firstName: form.firstName,
+                lastName: form.lastName,
+                email: form.email,
+                phone: form.phone,
+                address: form.address,
+                gender: form.gender
+            });
+        } catch {
+            success = false;
+        }
         setSaving(false);
         if (success) {
             setIsEditing(false);
+            setLocalUpdatedAt(new Date().toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' }));
         } else {
             setSaveError('No se pudo guardar el perfil. Comprueba los datos.');
         }
@@ -133,7 +165,7 @@ function PatientProfile({ patientData, onSave }) {
                             <button onClick={handleSave} disabled={saving} style={{ backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '8px', padding: '8px 16px', cursor: 'pointer' }}>
                                 {saving ? 'Guardando...' : 'Guardar'}
                             </button>
-                            <button onClick={() => setIsEditing(false)} disabled={saving} style={{ backgroundColor: '#64748b', color: 'white', border: 'none', borderRadius: '8px', padding: '8px 16px', cursor: 'pointer' }}>
+                            <button onClick={() => { setIsEditing(false); setSaveError(null); }} disabled={saving} style={{ backgroundColor: '#64748b', color: 'white', border: 'none', borderRadius: '8px', padding: '8px 16px', cursor: 'pointer' }}>
                                 Cancelar
                             </button>
                         </>
@@ -183,14 +215,14 @@ function PatientProfile({ patientData, onSave }) {
                 <div style={{ display: 'grid', gap: '8px' }}>
                     <label style={labelStyle}>Email</label>
                     {isEditing ? (
-                        <input value={form.email} onChange={handleChange('email')} style={inputStyle} />
+                        <input value={form.email} onChange={handleChange('email')} style={inputStyle} type="email" />
                     ) : (
                         <div style={displayStyle}>{email}</div>
                     )}
 
                     <label style={labelStyle}>Teléfono</label>
                     {isEditing ? (
-                        <input value={form.phone} onChange={handleChange('phone')} style={inputStyle} />
+                        <input value={form.phone} onChange={handleChange('phone')} style={inputStyle} maxLength={9} />
                     ) : (
                         <div style={displayStyle}>{phone}</div>
                     )}
@@ -212,7 +244,7 @@ function PatientProfile({ patientData, onSave }) {
 
             {saveError && <p style={{ color: '#b91c1c', margin: '12px 0' }}>{saveError}</p>}
 
-            <p style={{ color: '#475569', margin: 0, fontSize: '0.86rem' }}>Este perfil muestra los datos almacenados para el paciente. Contacta con soporte si hay datos incorrectos.</p>
+            <p style={{ color: '#475569', margin: 0, fontSize: '0.86rem' }}>Los campos con fondo gris no son editables. Si alguno de ellos contiene información incorrecta, contacta con el servicio técnico para que lo corrijan.</p>
         </section>
     );
 }
