@@ -3,12 +3,15 @@ import { useLocation } from 'react-router-dom';
 import DoctorStats from './DoctorStats';
 import AppointmentTable from './AppointmentTable';
 import DoctorProfile from './DoctorProfile';
+import DoctorReassignmentStats from './DoctorReassignmentStats';
+import AppointmentDetailModal from '../../components/AppointmentDetailModal';
+import History from './History';
 
 function DoctorDashboard({ authHeader, doctorId, onLogout }) {
   const [appointments, setAppointments] = useState([]);
   const [doctorData, setDoctorData] = useState(null);
   const [stats, setStats] = useState({ pending: 0, confirmed: 0 }); // nuevos datos
-  const [activeTab, setActiveTab] = useState('agenda'); // agenda, bloqueos, historial, perfil
+  const [activeTab, setActiveTab] = useState('agenda'); // agenda, bloqueos, historial, perfil, estadisticas
   const [loading, setLoading] = useState(true);
   const location = useLocation();
   const [showBlockModal, setShowBlockModal] = useState(false);
@@ -20,6 +23,7 @@ function DoctorDashboard({ authHeader, doctorId, onLogout }) {
   const [blockShift, setBlockShift] = useState('MORNING'); // MORNING, AFTERNOON, ANY
   const [blockedAppointments, setBlockedAppointments] = useState([]);
   const [sortOrder, setSortOrder] = useState('asc'); // 'asc' o 'desc' para ordenamiento de agenda
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [blockGridDate, setBlockGridDate] = useState(null); // inicializar en useEffect
   const [selectedHoursToBlock, setSelectedHoursToBlock] = useState([]); // array de horas seleccionadas
 
@@ -54,6 +58,7 @@ function DoctorDashboard({ authHeader, doctorId, onLogout }) {
     if (path.includes('/bloqueos')) setActiveTab('bloqueos');
     else if (path.includes('/historial')) setActiveTab('historial');
     else if (path.includes('/perfil')) setActiveTab('perfil');
+    else if (path.includes('/estadisticas')) setActiveTab('estadisticas');
     else setActiveTab('agenda');
   }, [location.pathname]);
 
@@ -137,12 +142,6 @@ function DoctorDashboard({ authHeader, doctorId, onLogout }) {
     return sortOrder === 'asc' ? timeA - timeB : timeB - timeA;
   });
 
-  const historialCitas = appointments.filter(app => {
-    // En historial: todas las citas sin importar estado o fecha (PASADAS, PRESENTES Y FUTURAS)
-    // Excepto bloqueos, que se muestran en otra sección
-    return app.status !== 'BLOCKED';
-  });
-
   const handleAttend = (appointmentId) => {
     fetch(`http://localhost:8080/api/appointments/${appointmentId}/confirm`, {
       method: 'PUT',
@@ -156,6 +155,22 @@ function DoctorDashboard({ authHeader, doctorId, onLogout }) {
       method: 'PUT',
       headers: { 'Authorization': authHeader }
     }).then(res => { if (res.ok) { fetchAppointments(); fetchStats(); fetchBlocked(); } });
+  };
+
+  const handleProfileUpdate = async (updatedFields) => {
+    try {
+      const resp = await fetch('http://localhost:8080/api/doctors/me', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: authHeader },
+        body: JSON.stringify(updatedFields)
+      });
+      if (!resp.ok) return false;
+      const updated = await resp.json();
+      setDoctorData(updated);
+      return true;
+    } catch {
+      return false;
+    }
   };
 
   const handleChangeShift = (newShift) => {
@@ -586,7 +601,7 @@ function DoctorDashboard({ authHeader, doctorId, onLogout }) {
         <header style={styles.topHeader}>
           <div>
             <h2 style={{ margin: 0, color: '#1e293b' }}>Dr. {doctorData?.lastName}</h2>
-            <p style={{ margin: 0, color: '#64748b' }}>{activeTab === 'agenda' ? 'Próximas citas' : activeTab === 'bloqueos' ? 'Control de disponibilidad' : activeTab === 'historial' ? 'Registro de actividad' : 'Ajustes de perfil'}</p>
+            <p style={{ margin: 0, color: '#64748b' }}>{activeTab === 'agenda' ? 'Próximas citas' : activeTab === 'bloqueos' ? 'Control de disponibilidad' : activeTab === 'historial' ? 'Registro de actividad' : activeTab === 'estadisticas' ? 'Estadísticas de reasignación' : 'Ajustes de perfil'}</p>
           </div>
           <div style={styles.userBadge}>{doctorData?.specialty}</div>
         </header>
@@ -616,7 +631,7 @@ function DoctorDashboard({ authHeader, doctorId, onLogout }) {
                 </div>
               </div>
 
-              {loading ? <p style={{textAlign:'center'}}>Cargando...</p> : <AppointmentTable data={agendaCitas} showActions={true} onConfirm={handleAttend} onReject={handleCancel} />}
+              {loading ? <p style={{textAlign:'center'}}>Cargando...</p> : <AppointmentTable data={agendaCitas} showActions={true} onConfirm={handleAttend} onReject={handleCancel} onRowClick={setSelectedAppointment} />}
             </div>
           </div>
         )}
@@ -871,16 +886,27 @@ function DoctorDashboard({ authHeader, doctorId, onLogout }) {
         )}
 
         {activeTab === 'historial' && (
-          <div style={styles.contentSection}>
-            <div style={styles.sectionHeader}><h3 style={{ margin: 0 }}>📜 Historial de Citas</h3></div>
-            {loading ? <p style={{textAlign:'center'}}>Cargando...</p> : <AppointmentTable data={historialCitas} showActions={false} />} 
-          </div>
+          <History authHeader={authHeader} doctorId={doctorId} />
         )}
 
         {activeTab === 'perfil' && doctorData && (
-          <DoctorProfile doctorData={doctorData} onShiftChange={handleChangeShift} />
+          <DoctorProfile doctorData={doctorData} onShiftChange={handleChangeShift} onSave={handleProfileUpdate} />
+        )}
+
+        {activeTab === 'estadisticas' && (
+          <DoctorReassignmentStats authHeader={authHeader} doctorId={doctorId} />
         )}
       </main>
+
+      {/* MODAL DETALLE CITA */}
+      {selectedAppointment && (
+        <AppointmentDetailModal
+          appointment={selectedAppointment}
+          onClose={() => setSelectedAppointment(null)}
+          role="doctor"
+          authHeader={authHeader}
+        />
+      )}
 
       {/* MODAL BLOQUEO */}
       {showBlockModal && (

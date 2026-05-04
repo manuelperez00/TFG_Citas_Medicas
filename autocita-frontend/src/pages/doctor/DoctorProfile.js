@@ -1,16 +1,18 @@
 import React from 'react';
 
+const PHONE_RE = /^\d{9}$/;
+const NAME_RE = /\d/;
+
 function DoctorProfile({ doctorData, onSave }) {
     const [isEditing, setIsEditing] = React.useState(false);
     const [saving, setSaving] = React.useState(false);
     const [saveError, setSaveError] = React.useState(null);
+    const [localUpdatedAt, setLocalUpdatedAt] = React.useState(null);
 
     const [form, setForm] = React.useState({
         firstName: '',
         lastName: '',
-        email: '',
-        phone: '',
-        workShift: ''
+        phone: ''
     });
 
     React.useEffect(() => {
@@ -18,9 +20,7 @@ function DoctorProfile({ doctorData, onSave }) {
             setForm({
                 firstName: doctorData.firstName || doctorData.first_name || doctorData.user?.firstName || doctorData.user?.first_name || '',
                 lastName: doctorData.lastName || doctorData.last_name || doctorData.user?.lastName || doctorData.user?.last_name || '',
-                email: doctorData.email || doctorData.user?.email || '',
-                phone: doctorData.phone || doctorData.user?.phone || '',
-                workShift: doctorData.workShift || doctorData.work_shift || ''
+                phone: doctorData.phone || doctorData.user?.phone || ''
             });
         }
     }, [doctorData]);
@@ -50,7 +50,9 @@ function DoctorProfile({ doctorData, onSave }) {
     };
 
     const createdAt = formatDate(doctorData.createdAt || doctorData.created_at);
-    const updatedAt = formatDate(doctorData.updatedAt || doctorData.updated_at);
+    const updatedAt = localUpdatedAt || formatDate(doctorData.updatedAt || doctorData.updated_at);
+
+    const workShiftLabel = workShift === 'MORNING' ? 'Mañana' : workShift === 'AFTERNOON' ? 'Tarde' : workShift === 'ANY' ? 'Ambos' : workShift;
 
     const inputStyle = {
         width: '100%',
@@ -95,19 +97,41 @@ function DoctorProfile({ doctorData, onSave }) {
         setForm({ ...form, [field]: event.target.value });
     };
 
+    const validate = () => {
+        if (!form.firstName.trim() || NAME_RE.test(form.firstName)) {
+            return 'El nombre no puede estar vacío ni contener números.';
+        }
+        if (!form.lastName.trim() || NAME_RE.test(form.lastName)) {
+            return 'El apellido no puede estar vacío ni contener números.';
+        }
+        if (!PHONE_RE.test(form.phone)) {
+            return 'El teléfono debe tener exactamente 9 dígitos numéricos.';
+        }
+        return null;
+    };
+
     const handleSave = async () => {
+        const validationError = validate();
+        if (validationError) {
+            setSaveError(validationError);
+            return;
+        }
         setSaving(true);
         setSaveError(null);
-        const success = await onSave({
-            firstName: form.firstName,
-            lastName: form.lastName,
-            email: form.email,
-            phone: form.phone,
-            workShift: form.workShift
-        });
+        let success = false;
+        try {
+            success = await onSave({
+                firstName: form.firstName,
+                lastName: form.lastName,
+                phone: form.phone
+            });
+        } catch {
+            success = false;
+        }
         setSaving(false);
         if (success) {
             setIsEditing(false);
+            setLocalUpdatedAt(new Date().toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' }));
         } else {
             setSaveError('No se pudo guardar el perfil. Comprueba los datos.');
         }
@@ -129,7 +153,7 @@ function DoctorProfile({ doctorData, onSave }) {
                             <button onClick={handleSave} disabled={saving} style={{ backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '8px', padding: '8px 16px', cursor: 'pointer' }}>
                                 {saving ? 'Guardando...' : 'Guardar'}
                             </button>
-                            <button onClick={() => setIsEditing(false)} disabled={saving} style={{ backgroundColor: '#64748b', color: 'white', border: 'none', borderRadius: '8px', padding: '8px 16px', cursor: 'pointer' }}>
+                            <button onClick={() => { setIsEditing(false); setSaveError(null); }} disabled={saving} style={{ backgroundColor: '#64748b', color: 'white', border: 'none', borderRadius: '8px', padding: '8px 16px', cursor: 'pointer' }}>
                                 Cancelar
                             </button>
                         </>
@@ -157,16 +181,8 @@ function DoctorProfile({ doctorData, onSave }) {
                         <div style={displayStyle}>{last}</div>
                     )}
 
-                    <label style={labelStyle}>Turno</label>
-                    {isEditing ? (
-                        <select value={form.workShift} onChange={handleChange('workShift')} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: 'white' }}>
-                            <option value="MORNING">Mañana</option>
-                            <option value="AFTERNOON">Tarde</option>
-                            <option value="ANY">Ambos</option>
-                        </select>
-                    ) : (
-                        <div style={displayStyle}>{workShift === 'MORNING' ? 'Mañana' : workShift === 'AFTERNOON' ? 'Tarde' : workShift === 'ANY' ? 'Ambos' : workShift}</div>
-                    )}
+                    <label style={nonEditableLabelStyle} title="Campo no editable" aria-label="No editable">Turno</label>
+                    <div style={nonEditableValueStyle}>{workShiftLabel}</div>
 
                     <label style={nonEditableLabelStyle} title="Campo no editable" aria-label="No editable">Especialidad</label>
                     <div style={nonEditableValueStyle}>{specialty}</div>
@@ -176,19 +192,15 @@ function DoctorProfile({ doctorData, onSave }) {
                 </div>
 
                 <div style={{ display: 'grid', gap: '8px' }}>
-                    <label style={labelStyle}>Email</label>
-                    {isEditing ? (
-                        <input value={form.email} onChange={handleChange('email')} style={inputStyle} />
-                    ) : (
-                        <div style={displayStyle}>{email}</div>
-                    )}
-
                     <label style={labelStyle}>Teléfono</label>
                     {isEditing ? (
-                        <input value={form.phone} onChange={handleChange('phone')} style={inputStyle} />
+                        <input value={form.phone} onChange={handleChange('phone')} style={inputStyle} maxLength={9} />
                     ) : (
                         <div style={displayStyle}>{phone}</div>
                     )}
+
+                    <label style={nonEditableLabelStyle} title="Campo no editable" aria-label="No editable">Email</label>
+                    <div style={nonEditableValueStyle}>{email}</div>
 
                     <label style={nonEditableLabelStyle} title="Campo no editable" aria-label="No editable">Creado</label>
                     <div style={nonEditableValueStyle}>{createdAt}</div>
@@ -200,7 +212,7 @@ function DoctorProfile({ doctorData, onSave }) {
 
             {saveError && <p style={{ color: '#b91c1c', margin: '12px 0' }}>{saveError}</p>}
 
-            <p style={{ color: '#475569', margin: 0, fontSize: '0.86rem' }}>Este perfil muestra los datos almacenados para el médico. Los campos de especialidad y colegiado no se pueden editar. Contacta con soporte si hay datos incorrectos.</p>
+            <p style={{ color: '#475569', margin: 0, fontSize: '0.86rem' }}>Los campos con fondo gris no son editables. Si alguno de ellos contiene información incorrecta, contacta con el servicio técnico para que lo corrijan.</p>
         </section>
     );
 }

@@ -1,6 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+const SPECIALTY_ES = {
+  PEDIATRICS: 'Pediatría', DERMATOLOGY: 'Dermatología', CARDIOLOGY: 'Cardiología',
+  GYNECOLOGY: 'Ginecología', DIGESTIVE: 'Digestivo', FAMILY_MEDICINE: 'Medicina de Familia',
+  TRAUMATOLOGY: 'Traumatología', OPHTHALMOLOGY: 'Oftalmología', ENDOCRINOLOGY: 'Endocrinología',
+  ENT: 'Otorrinolaringología', NEUROLOGY: 'Neurología', PSYCHIATRY: 'Psiquiatría',
+  PSYCHOLOGY: 'Psicología', GENERAL_SURGERY: 'Cirugía General', RADIOLOGY: 'Radiología',
+  UROLOGY: 'Urología', ALLERGY: 'Alergología',
+};
+
 function DoctorHome({ authHeader, doctorId }) {
   const navigate = useNavigate();
   const [doctorData, setDoctorData] = useState(null);
@@ -179,26 +188,59 @@ function DoctorHome({ authHeader, doctorId }) {
             Bienvenido a tu panel de control. Aquí puedes gestionar tus citas, disponibilidad y más.
           </p>
           <p style={{ fontSize: '0.95rem', color: '#64748b', fontStyle: 'italic' }}>
-            📋 {doctorData?.specialty || 'Especialista'} | 🕐 {doctorData?.workShift === 'MORNING' ? 'Turno Mañana' : doctorData?.workShift === 'AFTERNOON' ? 'Turno Tarde' : 'Ambos Turnos'}
+            📋 {SPECIALTY_ES[doctorData?.specialty] || doctorData?.specialty || 'Especialista'} | 🕐 {doctorData?.workShift === 'MORNING' ? 'Turno Mañana' : doctorData?.workShift === 'AFTERNOON' ? 'Turno Tarde' : 'Ambos Turnos'}
           </p>
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '300px' }}>
-          <img
-            src="https://images.unsplash.com/photo-1612349317453-3ad32c4a0b5f?auto=format&fit=crop&w=600&q=80"
-            alt="Doctor"
-            onError={(e) => {
-              e.target.src = '🩺'; // Fallback emoji si no carga
-            }}
-            style={{
-              width: '100%',
-              maxWidth: '350px',
-              height: 'auto',
-              borderRadius: '20px',
-              boxShadow: '0 20px 40px -10px rgba(0, 0, 0, 0.2)',
-              objectFit: 'cover'
-            }}
-          />
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+          <div style={{
+            width: '280px',
+            height: '300px',
+            background: 'linear-gradient(160deg, #ffffff 0%, #dcfce7 100%)',
+            borderRadius: '24px',
+            boxShadow: '0 20px 40px -10px rgba(16, 185, 129, 0.25)',
+            border: '2px solid rgba(16, 185, 129, 0.2)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '14px'
+          }}>
+            <div style={{
+              width: '90px',
+              height: '90px',
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '2rem',
+              fontWeight: '800',
+              color: 'white',
+              boxShadow: '0 8px 20px rgba(16, 185, 129, 0.35)',
+              letterSpacing: '-1px'
+            }}>
+              {doctorData ? `${(doctorData.firstName || '')[0] || ''}${(doctorData.lastName || '')[0] || ''}`.toUpperCase() : '👨‍⚕️'}
+            </div>
+            <div style={{ textAlign: 'center', padding: '0 20px' }}>
+              <div style={{ fontSize: '1.1rem', fontWeight: '700', color: '#166534' }}>
+                Dr. {doctorData?.firstName} {doctorData?.lastName}
+              </div>
+              <div style={{ fontSize: '0.85rem', color: '#16a34a', fontWeight: '500', marginTop: '4px' }}>
+                {SPECIALTY_ES[doctorData?.specialty] || doctorData?.specialty}
+              </div>
+            </div>
+            <div style={{ fontSize: '2.2rem', marginTop: '4px' }}>🩺</div>
+            <div style={{
+              fontSize: '0.75rem',
+              color: '#6ee7b7',
+              fontWeight: '600',
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase'
+            }}>
+              {doctorData?.licenseNumber}
+            </div>
+          </div>
         </div>
       </header>
 
