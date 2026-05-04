@@ -107,6 +107,9 @@ public class AppointmentService {
                         appointment.setReassigned(true);
                         appointmentRepository.save(appointment);
 
+                        // Registrar log de oferta aceptada
+                        reassignmentService.guardarLog(appointment, null, pacienteCandidato, "OFERTA_ACEPTADA");
+
                         System.out.println("✅ Cita reasignada aceptada - ID: " + appointmentId +
                                         " - Fecha: " + appointment.getStartTime() +
                                         " - Especialidad: " + appointment.getDoctor().getSpecialty());
