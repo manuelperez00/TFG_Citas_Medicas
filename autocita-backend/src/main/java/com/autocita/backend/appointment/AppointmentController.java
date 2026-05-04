@@ -360,6 +360,40 @@ public class AppointmentController {
         return ResponseEntity.ok().body("{\"message\": \"Rango de bloqueo registrado exitosamente\"}");
     }
 
+    @PatchMapping("/{id}/rating")
+    public ResponseEntity<?> rateAppointment(@PathVariable Integer id, @RequestBody Map<String, Object> body) {
+        var opt = appointmentRepository.findById(id);
+        if (opt.isEmpty()) return ResponseEntity.notFound().build();
+        Appointment appointment = opt.get();
+        if (appointment.getStatus() != AppointmentStatus.COMPLETED)
+            return ResponseEntity.badRequest().body("Solo se pueden valorar citas completadas.");
+        Integer rating = ((Number) body.get("rating")).intValue();
+        if (rating < 1 || rating > 5)
+            return ResponseEntity.badRequest().body("La valoración debe ser entre 1 y 5.");
+        appointment.setRating(rating);
+        return ResponseEntity.ok(appointmentRepository.save(appointment));
+    }
+
+    @GetMapping("/doctor/{doctorId}/rating")
+    public ResponseEntity<?> getDoctorRating(@PathVariable Integer doctorId) {
+        Double avg = appointmentRepository.getAverageRatingByDoctorId(doctorId);
+        Long count = appointmentRepository.countRatedByDoctorId(doctorId);
+        double rounded = avg != null ? Math.round(avg * 10.0) / 10.0 : 0.0;
+        return ResponseEntity.ok(Map.of("avgRating", rounded, "totalRatings", count != null ? count : 0L));
+    }
+
+    @GetMapping("/ratings/all")
+    public ResponseEntity<?> getAllDoctorRatings() {
+        java.util.Map<Integer, Object> result = new java.util.HashMap<>();
+        for (com.autocita.backend.doctor.Doctor doc : doctorRepository.findAll()) {
+            Double avg = appointmentRepository.getAverageRatingByDoctorId(doc.getId());
+            Long count = appointmentRepository.countRatedByDoctorId(doc.getId());
+            double rounded = avg != null ? Math.round(avg * 10.0) / 10.0 : 0.0;
+            result.put(doc.getId(), Map.of("avgRating", rounded, "totalRatings", count != null ? count : 0L));
+        }
+        return ResponseEntity.ok(result);
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteAppointment(@PathVariable Integer id) {
         if (appointmentRepository.existsById(id)) {
