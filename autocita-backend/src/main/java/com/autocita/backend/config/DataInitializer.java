@@ -15,6 +15,8 @@ import com.autocita.backend.patient.PatientRepository;
 import com.autocita.backend.security.Role;
 import com.autocita.backend.security.User;
 import com.autocita.backend.security.UserRepository;
+import com.autocita.backend.reassignmentLog.ReassignmentLog;
+import com.autocita.backend.reassignmentLog.ReassignmentLogRepository;
 import com.autocita.backend.waitingList.TimePreference;
 import com.autocita.backend.waitingList.UrgencyLevel;
 import com.autocita.backend.waitingList.WaitingList;
@@ -58,6 +60,9 @@ public class DataInitializer implements CommandLineRunner {
 
     @Autowired
     private MedicationRepository medicationRepository;
+
+    @Autowired
+    private ReassignmentLogRepository reassignmentLogRepository;
 
     @Override
     @Transactional
@@ -191,6 +196,44 @@ public class DataInitializer implements CommandLineRunner {
         // NO DEBERÍA GANAR porque prefiere tarde y el hueco es de mañana.
         crearListaEspera(p6, Specialty.CARDIOLOGY, UrgencyLevel.LOW, TimePreference.AFTERNOON, 5);
 
+        // ESTADÍSTICAS DE REASIGNACIÓN ─ HOUSE (doctor1): 5 aprovechados, 8 ofertas, 2 rechazadas, 1 sin respuesta, 1 sin candidatos
+        Appointment hR1 = crearCitaReasignada(house, p2, LocalDateTime.now().minusDays(60).withHour(9).withMinute(0), 4);
+        Appointment hR2 = crearCitaReasignada(house, p3, LocalDateTime.now().minusDays(55).withHour(10).withMinute(0), 5);
+        Appointment hR3 = crearCitaReasignada(house, p5, LocalDateTime.now().minusDays(48).withHour(9).withMinute(0), 3);
+        Appointment hR4 = crearCitaReasignada(house, p7, LocalDateTime.now().minusDays(40).withHour(10).withMinute(0), 5);
+        Appointment hR5 = crearCitaReasignada(house, p9, LocalDateTime.now().minusDays(32).withHour(9).withMinute(0), 4);
+        Appointment hF1 = crearCitaSlot(house, LocalDateTime.now().minusDays(28).withHour(10).withMinute(0));
+        Appointment hF2 = crearCitaSlot(house, LocalDateTime.now().minusDays(21).withHour(9).withMinute(0));
+        Appointment hF3 = crearCitaSlot(house, LocalDateTime.now().minusDays(14).withHour(10).withMinute(0));
+        crearLog(hR1, p1,   p2,   "OFERTA_ENVIADA",              LocalDateTime.now().minusDays(62));
+        crearLog(hR2, p1,   p3,   "OFERTA_ENVIADA",              LocalDateTime.now().minusDays(57));
+        crearLog(hR3, p2,   p5,   "OFERTA_ENVIADA",              LocalDateTime.now().minusDays(50));
+        crearLog(hR4, p3,   p7,   "OFERTA_ENVIADA",              LocalDateTime.now().minusDays(42));
+        crearLog(hR5, p4,   p9,   "OFERTA_ENVIADA",              LocalDateTime.now().minusDays(34));
+        crearLog(hF1, p6,   p8,   "OFERTA_ENVIADA",              LocalDateTime.now().minusDays(30));
+        crearLog(hF1, p6,   p8,   "OFERTA_RECHAZADA",            LocalDateTime.now().minusDays(29));
+        crearLog(hF1, p6,   p10,  "OFERTA_ENVIADA",              LocalDateTime.now().minusDays(29));
+        crearLog(hF1, p6,   p10,  "OFERTA_RECHAZADA",            LocalDateTime.now().minusDays(28));
+        crearLog(hF2, p7,   p4,   "OFERTA_ENVIADA",              LocalDateTime.now().minusDays(23));
+        crearLog(hF2, p7,   p4,   "NOT_RESPONDED",               LocalDateTime.now().minusDays(21));
+        crearLog(hF3, null, null,  "SIN_CANDIDATOS_DISPONIBLES",  LocalDateTime.now().minusDays(14));
+
+        // ESTADÍSTICAS DE REASIGNACIÓN ─ GREY (doctor2): 2 aprovechados, 3 ofertas, 1 rechazada
+        Appointment gR1 = crearCitaReasignada(grey, p1, LocalDateTime.now().minusDays(58).withHour(9).withMinute(0), 3);
+        Appointment gR2 = crearCitaReasignada(grey, p3, LocalDateTime.now().minusDays(45).withHour(10).withMinute(0), 4);
+        Appointment gF1 = crearCitaSlot(grey, LocalDateTime.now().minusDays(30).withHour(9).withMinute(0));
+        crearLog(gR1, p6, p1, "OFERTA_ENVIADA",   LocalDateTime.now().minusDays(60));
+        crearLog(gR2, p7, p3, "OFERTA_ENVIADA",   LocalDateTime.now().minusDays(47));
+        crearLog(gF1, p8, p5, "OFERTA_ENVIADA",   LocalDateTime.now().minusDays(32));
+        crearLog(gF1, p8, p5, "OFERTA_RECHAZADA", LocalDateTime.now().minusDays(31));
+
+        // ESTADÍSTICAS DE REASIGNACIÓN ─ SHEPHERD (doctor3): 1 aprovechado, 2 ofertas, 1 sin respuesta
+        Appointment sR1 = crearCitaReasignada(shepherd, p2, LocalDateTime.now().minusDays(52).withHour(17).withMinute(0), 5);
+        Appointment sF1 = crearCitaSlot(shepherd, LocalDateTime.now().minusDays(38).withHour(16).withMinute(0));
+        crearLog(sR1, p3, p2, "OFERTA_ENVIADA",  LocalDateTime.now().minusDays(54));
+        crearLog(sF1, p5, p6, "OFERTA_ENVIADA",  LocalDateTime.now().minusDays(40));
+        crearLog(sF1, p5, p6, "NOT_RESPONDED",   LocalDateTime.now().minusDays(38));
+
         System.out.println("--- ✅ CARGA COMPLETADA: 5 Médicos, 10 Pacientes y Listas de Espera listas ---");
     }
 
@@ -297,6 +340,33 @@ public class DataInitializer implements CommandLineRunner {
         m.setDescription(descripcion);
         m.setImageUrl(imageUrl);
         medicationRepository.save(m);
+    }
+
+    private Appointment crearCitaReasignada(Doctor d, Patient p, LocalDateTime start, int rating) {
+        Appointment a = new Appointment();
+        a.setDoctor(d);
+        a.setPatient(p);
+        a.setStartTime(start);
+        a.setDurationMinutes(60);
+        a.setStatus(AppointmentStatus.COMPLETED);
+        a.setRating(rating);
+        a.setReassigned(true);
+        return appointmentRepository.save(a);
+    }
+
+    private Appointment crearCitaSlot(Doctor d, LocalDateTime start) {
+        Appointment a = new Appointment();
+        a.setDoctor(d);
+        a.setStartTime(start);
+        a.setDurationMinutes(60);
+        a.setStatus(AppointmentStatus.COMPLETED);
+        return appointmentRepository.save(a);
+    }
+
+    private void crearLog(Appointment appt, Patient original, Patient nuevo, String reason, LocalDateTime timestamp) {
+        ReassignmentLog log = new ReassignmentLog(appt, original, nuevo, reason);
+        log.setTimestamp(timestamp);
+        reassignmentLogRepository.save(log);
     }
 
 }
