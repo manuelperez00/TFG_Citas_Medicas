@@ -4,7 +4,7 @@ COPY . .
 RUN mvn clean package -DskipTests
 
 # Etapa 2: Ejecutar la aplicación en una imagen ligera de Java
-FROM openjdk:17-slim
+FROM eclipse-temurin:17-jre-alpine
 COPY --from=build /target/*.jar app.jar
 EXPOSE 8080
 ENTRYPOINT ["java","-jar","/app.jar"]
