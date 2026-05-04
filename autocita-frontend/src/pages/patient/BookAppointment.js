@@ -1,7 +1,45 @@
 import React, { useState, useEffect } from 'react';
 
+const SPECIALTY_ES = {
+  PEDIATRICS: 'Pediatría',
+  DERMATOLOGY: 'Dermatología',
+  CARDIOLOGY: 'Cardiología',
+  GYNECOLOGY: 'Ginecología',
+  DIGESTIVE: 'Digestivo',
+  FAMILY_MEDICINE: 'Medicina de Familia',
+  TRAUMATOLOGY: 'Traumatología',
+  OPHTHALMOLOGY: 'Oftalmología',
+  ENDOCRINOLOGY: 'Endocrinología',
+  ENT: 'Otorrinolaringología',
+  NEUROLOGY: 'Neurología',
+  PSYCHIATRY: 'Psiquiatría',
+  PSYCHOLOGY: 'Psicología',
+  GENERAL_SURGERY: 'Cirugía General',
+  RADIOLOGY: 'Radiología',
+  UROLOGY: 'Urología',
+  ALLERGY: 'Alergología',
+};
+
+const specialtyEs = (value) => SPECIALTY_ES[value] ?? value;
+
+function StarsBadge({ avgRating, totalRatings }) {
+  if (!totalRatings) return <span style={{ fontSize: '11px', color: '#94a3b8' }}>Sin valoraciones</span>;
+  const rounded = Math.round(avgRating);
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}>
+      <span style={{ color: '#f59e0b', fontSize: '13px', letterSpacing: '-1px' }}>
+        {'★'.repeat(rounded)}{'☆'.repeat(5 - rounded)}
+      </span>
+      <span style={{ fontSize: '11px', color: '#94a3b8' }}>
+        {avgRating.toFixed(1)} ({totalRatings})
+      </span>
+    </div>
+  );
+}
+
 function BookAppointment({ authHeader, patientId }) {
   const [doctors, setDoctors] = useState([]);
+  const [doctorRatings, setDoctorRatings] = useState({});
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedTime, setSelectedTime] = useState(null);
@@ -53,7 +91,13 @@ function BookAppointment({ authHeader, patientId }) {
   useEffect(() => {
     fetch('http://localhost:8080/api/doctors', { headers: { 'Authorization': authHeader } })
       .then(res => res.json())
-      .then(data => setDoctors(data));
+      .then(data => {
+        setDoctors(data);
+        return fetch('http://localhost:8080/api/appointments/ratings/all', { headers: { 'Authorization': authHeader } });
+      })
+      .then(res => res.json())
+      .then(ratings => setDoctorRatings(ratings || {}))
+      .catch(() => {});
   }, [authHeader]);
 
   // Cargar citas del paciente
@@ -258,8 +302,12 @@ function BookAppointment({ authHeader, patientId }) {
                       👨‍⚕️
                     </div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: '600', fontSize: '14px', marginBottom: '3px' }}>Dr. {doc.firstName} {doc.lastName}</div>
-                      <div style={{ fontSize: '12px', opacity: 0.7, color: '#667eea', fontWeight: '500' }}>{doc.specialty}</div>
+                      <div style={{ fontWeight: '600', fontSize: '14px', marginBottom: '2px' }}>Dr. {doc.firstName} {doc.lastName}</div>
+                      <div style={{ fontSize: '12px', opacity: 0.7, color: '#667eea', fontWeight: '500', marginBottom: '2px' }}>{specialtyEs(doc.specialty)}</div>
+                      <StarsBadge
+                        avgRating={doctorRatings[doc.id]?.avgRating ?? 0}
+                        totalRatings={doctorRatings[doc.id]?.totalRatings ?? 0}
+                      />
                     </div>
                   </div>
                 </div>
@@ -279,7 +327,7 @@ function BookAppointment({ authHeader, patientId }) {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px', paddingBottom: '25px', borderBottom: '2px solid #e2e8f0' }}>
                   <div>
                     <h3 style={{ margin: 0, fontSize: '20px', color: '#1e293b', marginBottom: '5px' }}>Dr. {selectedDoctor.lastName}</h3>
-                    <p style={{ margin: 0, fontSize: '13px', color: '#667eea', fontWeight: '600' }}>{selectedDoctor.specialty}</p>
+                    <p style={{ margin: 0, fontSize: '13px', color: '#667eea', fontWeight: '600' }}>{specialtyEs(selectedDoctor.specialty)}</p>
                   </div>
                   <div style={{ textAlign: 'right' }}>
                     <label style={{ display: 'block', fontSize: '12px', color: '#64748b', marginBottom: '8px', fontWeight: '600' }}>Selecciona fecha:</label>
