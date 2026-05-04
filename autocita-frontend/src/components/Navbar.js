@@ -57,8 +57,9 @@ function Navbar({ user, onLogout, offers = [], onRefresh }) {
           <>
             <NavLink to="/" style={navLinkStyle}>Inicio</NavLink>
             <NavLink to="/mis-citas" style={navLinkStyle}>Mis Citas</NavLink>
-            <NavLink to="/historial" style={navLinkStyle}>📜 Historial</NavLink>
-            <NavLink to="/lista-espera" style={navLinkStyle}>⏳ Lista Espera</NavLink>
+            <NavLink to="/historial" style={navLinkStyle}>Historial</NavLink>
+            <NavLink to="/medicamentos" style={navLinkStyle}>Medicamentos</NavLink>
+            <NavLink to="/lista-espera" style={navLinkStyle}>Lista Espera</NavLink>
             <NavLink to="/perfil" style={navLinkStyle}>Perfil</NavLink>
             
             {/* CAMPANA DE NOTIFICACIONES (Solo para pacientes) */}
@@ -97,9 +98,12 @@ function Navbar({ user, onLogout, offers = [], onRefresh }) {
 
         {/* LINKS PARA MÉDICOS */}
         {isDoctor && (
-          <>            <NavLink to="/" style={navLinkStyle}>Inicio</NavLink>            <NavLink to="/agenda" style={navLinkStyle}>Agenda</NavLink>
+          <>
+            <NavLink to="/" style={navLinkStyle}>Inicio</NavLink>
+            <NavLink to="/agenda" style={navLinkStyle}>Agenda</NavLink>
             <NavLink to="/bloqueos" style={navLinkStyle}>Bloqueos</NavLink>
             <NavLink to="/historial" style={navLinkStyle}>Historial</NavLink>
+            <NavLink to="/estadisticas" style={navLinkStyle}>Estadísticas</NavLink>
             <NavLink to="/perfil" style={navLinkStyle}>Perfil</NavLink>
           </>
         )}

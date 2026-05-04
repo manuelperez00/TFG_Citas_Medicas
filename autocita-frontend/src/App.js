@@ -9,6 +9,7 @@ import History from './pages/patient/History';
 import BookAppointment from './pages/patient/BookAppointment';
 import WaitingList from './pages/patient/WaitingList';
 import PatientProfilePage from './pages/patient/ProfilePage';
+import Medications from './pages/patient/Medications';
 import DoctorHome from './pages/doctor/DoctorHome';
 import DoctorDashboard from './pages/doctor/DoctorDashboard';
 
@@ -137,6 +138,7 @@ function App() {
             <Route path="/bloqueos" element={<DoctorDashboard authHeader={user.authHeader} doctorId={doctorId} />} />
             <Route path="/historial" element={<DoctorDashboard authHeader={user.authHeader} doctorId={doctorId} />} />
             <Route path="/perfil" element={<DoctorDashboard authHeader={user.authHeader} doctorId={doctorId} />} />
+            <Route path="/estadisticas" element={<DoctorDashboard authHeader={user.authHeader} doctorId={doctorId} />} />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </div>
@@ -167,6 +169,7 @@ function App() {
             } />
             <Route path="/mis-citas" element={<MyAppointments authHeader={user.authHeader} patientId={patientId} />} />
             <Route path="/historial" element={<History authHeader={user.authHeader} patientId={patientId} />} />
+            <Route path="/medicamentos" element={<Medications authHeader={user.authHeader} patientId={patientId} />} />
             <Route path="/reservar" element={<BookAppointment authHeader={user.authHeader} patientId={patientId} />} />
             <Route path="/lista-espera" element={<WaitingList authHeader={user.authHeader} patientId={patientId} />} />
             <Route path="/perfil" element={<PatientProfilePage authHeader={user.authHeader} patientId={patientId} />} />
