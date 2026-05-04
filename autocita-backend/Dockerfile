@@ -1,10 +1,10 @@
-# Etapa 1: Compilar la aplicación con Maven
-FROM maven:3.8.5-openjdk-17-slim AS build
+# Etapa 1: Compilar la aplicación con Maven (usando Java 21)
+FROM maven:3.9.6-eclipse-temurin-21-alpine AS build
 COPY . .
 RUN mvn clean package -DskipTests
 
-# Etapa 2: Ejecutar la aplicación en una imagen ligera de Java
-FROM eclipse-temurin:17-jre-alpine
+# Etapa 2: Ejecutar la aplicación en una imagen ligera de Java 21
+FROM eclipse-temurin:21-jre-alpine
 COPY --from=build /target/*.jar app.jar
 EXPOSE 8080
 ENTRYPOINT ["java","-jar","/app.jar"]
