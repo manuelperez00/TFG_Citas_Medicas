@@ -19,4 +19,10 @@ public interface ReassignmentLogRepository extends JpaRepository<ReassignmentLog
     // Buscar pacientes que rechazaron o no respondieron a esta cita
     @Query("SELECT l.newPatient.id FROM ReassignmentLog l WHERE l.appointment.id = :appId AND (l.reason = 'OFERTA_RECHAZADA' OR l.reason = 'NOT_RESPONDED')")
     List<Integer> findRejectedPatientIdsByAppointment(@Param("appId") Integer appId);
+
+    @Query("SELECT l FROM ReassignmentLog l WHERE l.appointment.doctor.id = :doctorId ORDER BY l.timestamp DESC")
+    List<ReassignmentLog> findByAppointmentDoctorId(@Param("doctorId") Integer doctorId);
+
+    @Query("SELECT COUNT(l) FROM ReassignmentLog l WHERE l.appointment.doctor.id = :doctorId AND l.reason = :reason")
+    long countByAppointmentDoctorIdAndReason(@Param("doctorId") Integer doctorId, @Param("reason") String reason);
 }

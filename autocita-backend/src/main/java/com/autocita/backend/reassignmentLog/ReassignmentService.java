@@ -262,13 +262,13 @@ public class ReassignmentService {
     }
 
     // Verifica si un paciente tiene ALGUNA cita ese día
-  
     private boolean tieneCitaEseDia(Patient paciente, LocalDate fecha) {
         List<Appointment> citas = appointmentRepository.findPatientAppointmentsByDate(paciente.getId(), fecha);
         return !citas.isEmpty();
     }
 
-    // Valida si un paciente puede aceptar una cita el mismo día que ya tiene otra cita.
+    // Valida si un paciente puede aceptar una cita el mismo día que ya tiene otra
+    // cita.
     private boolean puedeAceptarCitaAlMismoDia(Patient paciente, Appointment huecoNuevo, LocalDate fecha) {
         // Obtener todas las citas del paciente ese día
         List<Appointment> citasEseDia = appointmentRepository.findPatientAppointmentsByDate(paciente.getId(), fecha);
@@ -282,28 +282,24 @@ public class ReassignmentService {
                 .anyMatch(apt -> apt.getDoctor().getSpecialty() != huecoNuevo.getDoctor().getSpecialty());
 
         if (tieneCitaDiferenteEspecialidad) {
-            // Solo si el hueco es ANTERIOR a la cita existente (sin solapar)
-            LocalDateTime horaHuecoNuevo = huecoNuevo.getStartTime();
+            // Solo se comprueba que no haya solapamiento horario.
             for (Appointment citaExistente : citasEseDia) {
                 if (citaExistente.getDoctor().getSpecialty() != huecoNuevo.getDoctor().getSpecialty()) {
-                    LocalDateTime finHueco = horaHuecoNuevo.plusMinutes(huecoNuevo.getDurationMinutes());
-                    LocalDateTime inicioCita = citaExistente.getStartTime();
-
-                    boolean hayConflicto = finHueco.isAfter(inicioCita);
-
-                    if (hayConflicto) {
-                        System.out.println("⚠️ Paciente " + paciente.getId() +
-                                " tiene cita a las " + inicioCita +
-                                " pero el hueco nuevo es a las " + horaHuecoNuevo +
-                                " (terminaría a " + finHueco + "). " +
-                                "El hueco DEBE ser ANTERIOR sin solapar.");
+                    boolean haySolapamiento = AppointmentService.hasTimeOverlap(
+                            citaExistente.getStartTime(),
+                            citaExistente.getDurationMinutes(),
+                            huecoNuevo.getStartTime(),
+                            huecoNuevo.getDurationMinutes());
+                    if (haySolapamiento) {
+                        System.out.println("Paciente " + paciente.getId() +
+                                " tiene una cita de otra especialidad que se solapa con el hueco.");
                         return false;
                     }
                 }
             }
         }
 
-        // CASO: Tiene cita de MISMA especialidad ese día
+        // CASO: Tiene cita de la misma especialidad ese día
         // PERMITE SOLO si la cita posterior tiene MORE de 12 horas (regla de
         // cancelación)
         // Si acepta la reasignación, se cancelará la cita posterior automáticamente
@@ -384,7 +380,8 @@ public class ReassignmentService {
         reassignmentLogRepository.save(log);
     }
 
-    // Marca como EXPIRED todos los registros de lista de espera cuya fecha preferida ya pasó
+    // Marca como EXPIRED todos los registros de lista de espera cuya fecha
+    // preferida ya pasó
     @Transactional
     public void marcarListasEsperaExpiradas() {
         LocalDate hoy = LocalDate.now();
@@ -423,7 +420,8 @@ public class ReassignmentService {
         }
     }
 
-    // Marca como REJECTED todos los registros de lista de espera de un paciente después de rechazar una oferta
+    // Marca como REJECTED todos los registros de lista de espera de un paciente
+    // después de rechazar una oferta
     @Transactional
     public void marcarListasEsperaComoRechazadas(Integer appointmentId, Integer patientId, Specialty specialty) {
         List<WaitingList> registros = waitingListRepository.findByPatientId(patientId);
