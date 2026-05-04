@@ -39,6 +39,8 @@ public class AuthenticationService {
         user.setRole(Role.PATIENT);
         user.setEnabled(true);
 
+        userRepository.save(user);
+
         // Crear el Paciente
         Patient patient = new Patient();
         patient.setFirstName(request.getFirstName());

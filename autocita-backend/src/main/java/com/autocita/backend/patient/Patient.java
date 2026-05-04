@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import com.autocita.backend.model.Person;
 import com.autocita.backend.security.User;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -87,7 +88,7 @@ public class Patient extends Person {
         this.updatedAt = LocalDateTime.now();
     }
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.PERSIST)
     @JoinColumn(name = "user_id")
     private User user;
 
