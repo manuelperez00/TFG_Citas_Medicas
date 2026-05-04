@@ -19,7 +19,7 @@ import LandingPage from './pages/LandingPage';
 import Register from './pages/Register';
 
 function App() {
-  const [user, setUser] = useState(null); // Usuario logueado
+  const [user, setUser] = useState(null);
   const [userRole, setUserRole] = useState(null); // 'PATIENT' o 'DOCTOR'
   const [patientId, setPatientId] = useState(null);
   const [doctorId, setDoctorId] = useState(null);
