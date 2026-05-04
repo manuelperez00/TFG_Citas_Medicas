@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
+const API_URL = process.env.REACT_APP_API_URL;
+
 function WaitingList({ authHeader, patientId }) {
   const [activeItems, setActiveItems] = useState([]);
   const [offeredItems, setOfferedItems] = useState([]);
@@ -133,7 +135,7 @@ function WaitingList({ authHeader, patientId }) {
 
   const fetchMyList = () => {
     if (!patientId) return;
-    fetch(`http://localhost:8080/api/waiting-list/patient/${patientId}`, {
+    fetch(`${API_URL}/api/waiting-list/patient/${patientId}`, {
       headers: { 'Authorization': authHeader }
     })
     .then(res => res.json())
@@ -150,7 +152,7 @@ function WaitingList({ authHeader, patientId }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const url = new URL('http://localhost:8080/api/waiting-list');
+    const url = new URL(`${API_URL}/api/waiting-list`);
     url.searchParams.append('patientId', patientId);
     url.searchParams.append('specialty', specialty);
     url.searchParams.append('urgency', urgency);
@@ -176,7 +178,7 @@ function WaitingList({ authHeader, patientId }) {
     
     if (!confirmed) return;
 
-    const url = new URL(`http://localhost:8080/api/waiting-list/${waitingListId}`);
+    const url = new URL(`${API_URL}/api/waiting-list/${waitingListId}`);
     url.searchParams.append('patientId', patientId);
 
     fetch(url, {

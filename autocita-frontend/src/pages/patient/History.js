@@ -23,6 +23,8 @@ const STATUS_COLORS = {
   NOT_RESPONDED: '#fbbf24',
 };
 
+const API_URL = process.env.REACT_APP_API_URL;
+
 const SPECIALTY_ES = {
   PEDIATRICS: 'Pediatría', DERMATOLOGY: 'Dermatología', CARDIOLOGY: 'Cardiología',
   GYNECOLOGY: 'Ginecología', DIGESTIVE: 'Digestivo', FAMILY_MEDICINE: 'Medicina de Familia',
@@ -46,7 +48,7 @@ function History({ authHeader, patientId }) {
   const fetchAppointments = () => {
     if (!patientId) return;
     setLoading(true);
-    fetch(`http://localhost:8080/api/appointments/patient/${patientId}`, {
+    fetch(`${API_URL}/api/appointments/patient/${patientId}`, {
       headers: { 'Authorization': authHeader }
     })
       .then(res => res.json())

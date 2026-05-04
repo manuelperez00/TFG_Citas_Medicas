@@ -5,18 +5,39 @@ function Login({ onLogin }) {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
 
-    setTimeout(() => {
+    const API_URL = process.env.REACT_APP_API_URL;
+
+    try {
+      // Realizamos la petición al backend
+      const response = await fetch(`${API_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+      });
+
+      if (response.ok) {
+        // En caso de que el login sea exitoso generamos el token y llamamos a onLogin
         const token = 'Basic ' + btoa(username + ':' + password);
         onLogin({ 
             username: username, 
             authHeader: token 
         });
-        setIsLoading(false);
-    }, 600);
+      } else {
+        const errorData = await response.text();
+        alert('Error al iniciar sesión: ' + errorData);
+      }
+    } catch (error) {
+      console.error('Error de conexión:', error);
+      alert('Error de conexión con el servidor');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

@@ -55,6 +55,8 @@ const DURATION_OPTIONS = [
   { label: '3 meses (90 días)', days: 90 },
 ];
 
+const API_URL = process.env.REACT_APP_API_URL;
+
 function PrescriptionsSection({ appointment, authHeader }) {
   const [prescriptions, setPrescriptions] = useState([]);
   const [allMeds, setAllMeds] = useState([]);
@@ -64,11 +66,11 @@ function PrescriptionsSection({ appointment, authHeader }) {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    fetch(`http://localhost:8080/api/prescriptions/appointment/${appointment.id}`, {
+    fetch(`${API_URL}/api/prescriptions/appointment/${appointment.id}`, {
       headers: { Authorization: authHeader }
     }).then(r => r.json()).then(data => setPrescriptions(Array.isArray(data) ? data : []));
 
-    fetch('http://localhost:8080/api/medications', {
+    fetch(`${API_URL}/api/medications`, {
       headers: { Authorization: authHeader }
     }).then(r => r.json()).then(data => setAllMeds(Array.isArray(data) ? data : []));
   }, [appointment.id, authHeader]);
@@ -81,7 +83,7 @@ function PrescriptionsSection({ appointment, authHeader }) {
   const handleAdd = () => {
     if (!canAdd) return;
     setSaving(true);
-    fetch('http://localhost:8080/api/prescriptions', {
+    fetch(`${API_URL}/api/prescriptions`, {
       method: 'POST',
       headers: { Authorization: authHeader, 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -103,7 +105,7 @@ function PrescriptionsSection({ appointment, authHeader }) {
   };
 
   const handleRemove = (prescId) => {
-    fetch(`http://localhost:8080/api/prescriptions/${prescId}`, {
+    fetch(`${API_URL}/api/prescriptions/${prescId}`, {
       method: 'DELETE',
       headers: { Authorization: authHeader }
     }).then(r => {

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Notifications from './Notifications';
 
+const API_URL = process.env.REACT_APP_API_URL;
+
 function Home({ user, authHeader, patientId }) {
   const navigate = useNavigate();
 
@@ -19,7 +21,7 @@ function Home({ user, authHeader, patientId }) {
     if (!patientId) return;
 
     // Cargar Citas y Notificaciones (Ofertas)
-    fetch(`http://localhost:8080/api/appointments/patient/${patientId}`, {
+    fetch(`${API_URL}/api/appointments/patient/${patientId}`, {
       headers: { Authorization: authHeader }
     })
       .then(res => res.json())
@@ -73,7 +75,7 @@ function Home({ user, authHeader, patientId }) {
       .catch(err => console.error('Error fetching appointments', err));
 
     // Cargar total de doctores
-    fetch('http://localhost:8080/api/doctors', { headers: { Authorization: authHeader } })
+    fetch(`${API_URL}/api/doctors`, { headers: { Authorization: authHeader } })
       .then(res => res.json())
       .then(dr => {
         setStats(prev => ({ ...prev, doctors: dr.length }));

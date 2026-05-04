@@ -16,6 +16,8 @@ const CATEGORY_ICONS = {
 
 const categoryIcon = (cat) => CATEGORY_ICONS[cat] || '💊';
 
+const API_URL = process.env.REACT_APP_API_URL;
+
 function Medications({ authHeader, patientId }) {
   const [medications, setMedications] = useState([]);
   const [prescriptions, setPrescriptions] = useState([]);
@@ -25,8 +27,8 @@ function Medications({ authHeader, patientId }) {
   useEffect(() => {
     if (!patientId) return;
     Promise.all([
-      fetch('http://localhost:8080/api/medications', { headers: { Authorization: authHeader } }).then(r => r.json()),
-      fetch(`http://localhost:8080/api/prescriptions/patient/${patientId}`, { headers: { Authorization: authHeader } }).then(r => r.json()),
+      fetch(`${API_URL}/api/medications`, { headers: { Authorization: authHeader } }).then(r => r.json()),
+      fetch(`${API_URL}/api/prescriptions/patient/${patientId}`, { headers: { Authorization: authHeader } }).then(r => r.json()),
     ])
       .then(([meds, presc]) => {
         setMedications(Array.isArray(meds) ? meds : []);

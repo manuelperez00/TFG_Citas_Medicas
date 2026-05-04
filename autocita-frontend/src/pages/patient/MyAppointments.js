@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import AppointmentDetailModal from '../../components/AppointmentDetailModal';
 
+const API_URL = process.env.REACT_APP_API_URL;
+
 function MyAppointments({ authHeader, patientId }) {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -16,7 +18,7 @@ function MyAppointments({ authHeader, patientId }) {
   const fetchAppointments = () => {
     if (!patientId) return;
     setLoading(true);
-    fetch(`http://localhost:8080/api/appointments/patient/${patientId}`, {
+    fetch(`${API_URL}/api/appointments/patient/${patientId}`, {
       headers: { 'Authorization': authHeader }
     })
       .then(res => res.json())
@@ -46,7 +48,7 @@ function MyAppointments({ authHeader, patientId }) {
     if (!window.confirm("¿Seguro que deseas cancelar esta cita?")) return;
 
     console.log(`🔄 Cancelando cita ${appointmentId}...`);
-    fetch(`http://localhost:8080/api/appointments/${appointmentId}/cancel`, {
+    fetch(`${API_URL}/api/appointments/${appointmentId}/cancel`, {
       method: 'POST',
       headers: { 'Authorization': authHeader }
     })

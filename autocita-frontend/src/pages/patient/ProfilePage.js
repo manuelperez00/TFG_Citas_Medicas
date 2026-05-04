@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import PatientProfile from './PatientProfile';
 
+const API_URL = process.env.REACT_APP_API_URL;
+
 function ProfilePage({ authHeader, patientId }) {
   const [patientData, setPatientData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -15,7 +17,7 @@ function ProfilePage({ authHeader, patientId }) {
       }
 
       const fetchById = async (id) => {
-        const resp = await fetch(`http://localhost:8080/api/patients/${id}`, {
+        const resp = await fetch(`${API_URL}/api/patients/${id}`, {
           headers: { Authorization: authHeader }
         });
         if (!resp.ok) {
@@ -25,7 +27,7 @@ function ProfilePage({ authHeader, patientId }) {
       };
 
       try {
-        const meResp = await fetch('http://localhost:8080/api/patients/me', {
+        const meResp = await fetch(`${API_URL}/api/patients/me`, {
           headers: { Authorization: authHeader }
         });
 
@@ -65,7 +67,7 @@ function ProfilePage({ authHeader, patientId }) {
       return;
     }
     try {
-      const endpoint = 'http://localhost:8080/api/patients/me';
+      const endpoint = `${API_URL}/api/patients/me`;
       console.log('Updating patient profile:', endpoint, updatedFields);
       const resp = await fetch(endpoint, {
         method: 'PATCH',

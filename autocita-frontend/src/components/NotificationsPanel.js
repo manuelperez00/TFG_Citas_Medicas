@@ -1,12 +1,14 @@
 import React from 'react';
 
+const API_URL = process.env.REACT_APP_API_URL;
+
 function NotificationsPanel({ offers, onRefresh, close, authHeader }) {
   
   const handleAction = async (id, accepted) => {
     try {
       console.log(`📤 Enviando respuesta: Cita ID ${id}, Aceptada: ${accepted}`);
       
-      const res = await fetch(`http://localhost:8080/api/appointments/${id}/respond-offer?accepted=${accepted}`, {
+      const res = await fetch(`${API_URL}/api/appointments/${id}/respond-offer?accepted=${accepted}`, {
         method: 'POST',
         headers: { 'Authorization': authHeader }
       });

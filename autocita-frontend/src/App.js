@@ -26,6 +26,8 @@ function App() {
   const [authHeader, setAuthHeader] = useState(localStorage.getItem('authHeader'));
   const [offers, setOffers] = useState([]);
 
+  const API_URL = process.env.REACT_APP_API_URL;
+
   // --- LÓGICA DE NOTIFICACIONES ---
   const fetchOffers = async () => {
     // Usamos user.authHeader si está logueado, sino el estado authHeader
@@ -33,7 +35,7 @@ function App() {
     if (!patientId || !token) return;
 
     try {
-      const res = await fetch(`http://localhost:8080/api/appointments/patient/${patientId}`, {
+      const res = await fetch(`${API_URL}/api/appointments/patient/${patientId}`, {
         headers: { 'Authorization': token }
       });
       if (res.ok) {
@@ -64,7 +66,7 @@ function App() {
     localStorage.setItem('authHeader', userData.authHeader);
 
     // Intentar como PACIENTE primero
-    fetch('http://localhost:8080/api/patients/my-id', {
+    fetch(`${API_URL}/api/patients/my-id`, {
       headers: { 'Authorization': userData.authHeader }
     })
     .then(async response => {
@@ -82,7 +84,7 @@ function App() {
     .catch(err => {
       // Si falla como paciente, intentar como MÉDICO
       console.log('Trying as DOCTOR...');
-      return fetch('http://localhost:8080/api/doctors/my-id', {
+      return fetch(`${API_URL}/api/doctors/my-id`, {
         headers: { 'Authorization': userData.authHeader }
       })
       .then(async response => {

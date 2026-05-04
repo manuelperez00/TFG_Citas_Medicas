@@ -22,6 +22,8 @@ const SPECIALTY_ES = {
 
 const specialtyEs = (value) => SPECIALTY_ES[value] ?? value;
 
+const API_URL = process.env.REACT_APP_API_URL;
+
 function StarsBadge({ avgRating, totalRatings }) {
   if (!totalRatings) return <span style={{ fontSize: '11px', color: '#94a3b8' }}>Sin valoraciones</span>;
   const rounded = Math.round(avgRating);
@@ -89,11 +91,11 @@ function BookAppointment({ authHeader, patientId }) {
   }, []);
 
   useEffect(() => {
-    fetch('http://localhost:8080/api/doctors', { headers: { 'Authorization': authHeader } })
+    fetch(`${API_URL}/api/doctors`, { headers: { 'Authorization': authHeader } })
       .then(res => res.json())
       .then(data => {
         setDoctors(data);
-        return fetch('http://localhost:8080/api/appointments/ratings/all', { headers: { 'Authorization': authHeader } });
+        return fetch(`${API_URL}/api/appointments/ratings/all`, { headers: { 'Authorization': authHeader } });
       })
       .then(res => res.json())
       .then(ratings => setDoctorRatings(ratings || {}))
@@ -103,13 +105,13 @@ function BookAppointment({ authHeader, patientId }) {
   // Cargar citas del paciente
   useEffect(() => {
     // Primero obtener el ID del paciente
-    fetch(`http://localhost:8080/api/appointments/my-id`, {
+    fetch(`${API_URL}/api/appointments/my-id`, {
       headers: { 'Authorization': authHeader }
     })
     .then(res => res.json())
     .then(myPatientId => {
       // Luego obtener sus citas
-      return fetch(`http://localhost:8080/api/appointments/patient/${myPatientId}`, {
+      return fetch(`${API_URL}/api/appointments/patient/${myPatientId}`, {
         headers: { 'Authorization': authHeader }
       })
       .then(res => res.json())
@@ -125,7 +127,7 @@ function BookAppointment({ authHeader, patientId }) {
   }, [authHeader]);
 
   const fetchDoctorAppointments = (doctorId) => {
-    fetch(`http://localhost:8080/api/appointments/doctor/${doctorId}`, {
+    fetch(`${API_URL}/api/appointments/doctor/${doctorId}`, {
       headers: { 'Authorization': authHeader }
     })
     .then(res => res.json())
@@ -151,7 +153,7 @@ function BookAppointment({ authHeader, patientId }) {
       startTime: `${selectedDate}T${selectedTime}`
     };
 
-    fetch('http://localhost:8080/api/appointments', {
+    fetch(`${API_URL}/api/appointments`, {
       method: 'POST',
       headers: { 'Authorization': authHeader, 'Content-Type': 'application/json' },
       body: JSON.stringify(request)
@@ -163,7 +165,7 @@ function BookAppointment({ authHeader, patientId }) {
       alert("✅ Solicitud enviada con éxito");
       
       // Recargar citas del paciente después de confirmar
-      fetch(`http://localhost:8080/api/appointments/patient/${patientId}`, {
+      fetch(`${API_URL}/api/appointments/patient/${patientId}`, {
         headers: { 'Authorization': authHeader }
       })
       .then(res => res.json())
