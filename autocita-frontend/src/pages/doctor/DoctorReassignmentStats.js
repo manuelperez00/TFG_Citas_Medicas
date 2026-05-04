@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 const REASON_LABELS = {
   OFERTA_ENVIADA:                        'Oferta enviada',
   OFERTA_RECHAZADA:                      'Oferta rechazada',
-  OFERTA_ACEPTADA:                       'Oferta aceptada',
   NOT_RESPONDED:                         'Sin respuesta (expirada)',
   SIN_CANDIDATOS_DISPONIBLES:            'Sin candidatos',
   LIBERADA_POR_ACEPTACION_LISTA_ESPERA_ANTERIOR: 'Liberada (paciente aceptó cita anterior)',
@@ -13,7 +12,6 @@ const REASON_LABELS = {
 const REASON_COLORS = {
   OFERTA_ENVIADA:             { bg: '#dbeafe', text: '#1d4ed8' },
   OFERTA_RECHAZADA:           { bg: '#fee2e2', text: '#b91c1c' },
-  OFERTA_ACEPTADA:            { bg: '#dcfce7', text: '#15803d' },
   NOT_RESPONDED:              { bg: '#fef3c7', text: '#92400e' },
   SIN_CANDIDATOS_DISPONIBLES: { bg: '#f1f5f9', text: '#475569' },
 };
