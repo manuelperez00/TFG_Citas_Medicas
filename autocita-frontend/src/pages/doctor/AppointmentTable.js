@@ -11,7 +11,7 @@ const getStatusColor = (status) => {
   }
 };
 
-function AppointmentTable({ data, showActions, onConfirm, onBlock }) {
+function AppointmentTable({ data, showActions, onConfirm, onBlock, onRowClick }) {
   const now = new Date();
   return (
     <div style={{ overflowX: 'auto' }}>
@@ -25,7 +25,14 @@ function AppointmentTable({ data, showActions, onConfirm, onBlock }) {
         </thead>
         <tbody>
           {data.length > 0 ? data.map(app => (
-            <tr key={app.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+            <tr
+              key={app.id}
+              style={{ borderBottom: '1px solid #f1f5f9', cursor: onRowClick ? 'pointer' : 'default', transition: 'background 0.15s' }}
+              onClick={() => onRowClick && onRowClick(app)}
+              onMouseEnter={e => { if (onRowClick) e.currentTarget.style.backgroundColor = '#f8fafc'; }}
+              onMouseLeave={e => { if (onRowClick) e.currentTarget.style.backgroundColor = ''; }}
+              title={onRowClick ? 'Ver detalle de la cita' : ''}
+            >
               <td style={{ padding: '16px', verticalAlign: 'middle' }}>
                 <div style={{ fontWeight: '700', color: '#1e293b' }}>{new Date(app.startTime).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div>
                 <div style={{ fontSize: '0.8rem', color: '#64748b' }}>{new Date(app.startTime).toLocaleDateString()}</div>
