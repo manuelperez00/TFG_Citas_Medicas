@@ -7,6 +7,8 @@ import com.autocita.backend.doctor.Doctor;
 import com.autocita.backend.doctor.DoctorRepository;
 import com.autocita.backend.doctor.Specialty;
 import com.autocita.backend.doctor.WorkShift;
+import com.autocita.backend.medication.Medication;
+import com.autocita.backend.medication.MedicationRepository;
 import com.autocita.backend.patient.Gender;
 import com.autocita.backend.patient.Patient;
 import com.autocita.backend.patient.PatientRepository;
@@ -54,9 +56,46 @@ public class DataInitializer implements CommandLineRunner {
     @Autowired
     private WaitingListRepository waitingListRepository;
 
+    @Autowired
+    private MedicationRepository medicationRepository;
+
     @Override
     @Transactional
     public void run(String... args) throws Exception {
+        if (medicationRepository.count() == 0) {
+            crearMedicamento(
+                "Ibuprofeno 600mg", "Ibuprofeno", "Antiinflamatorio",
+                "1 comprimido cada 8 horas con comida",
+                "Antiinflamatorio no esteroideo (AINE). Alivia el dolor leve-moderado, la fiebre y la inflamación.",
+                "https://placehold.co/80x80/ef4444/ffffff?text=IBU"
+            );
+            crearMedicamento(
+                "Amoxicilina 500mg", "Amoxicilina", "Antibiótico",
+                "1 cápsula cada 8 horas durante 7-10 días",
+                "Antibiótico de amplio espectro del grupo de las penicilinas. Trata infecciones bacterianas.",
+                "https://placehold.co/80x80/3b82f6/ffffff?text=AMX"
+            );
+            crearMedicamento(
+                "Omeprazol 20mg", "Omeprazol", "Antiácido",
+                "1 cápsula en ayunas, 30 min antes del desayuno",
+                "Inhibidor de la bomba de protones. Reduce la producción de ácido gástrico y protege el estómago.",
+                "https://placehold.co/80x80/8b5cf6/ffffff?text=OME"
+            );
+            crearMedicamento(
+                "Paracetamol 1g", "Paracetamol", "Analgésico",
+                "1 comprimido cada 6-8 horas (máx. 4 al día)",
+                "Analgésico y antipirético. Alivia el dolor leve-moderado y reduce la fiebre sin afectar al estómago.",
+                "https://placehold.co/80x80/f59e0b/ffffff?text=PAR"
+            );
+            crearMedicamento(
+                "Loratadina 10mg", "Loratadina", "Antihistamínico",
+                "1 comprimido al día",
+                "Antihistamínico de segunda generación. Alivia los síntomas de alergia sin causar somnolencia.",
+                "https://placehold.co/80x80/10b981/ffffff?text=LOR"
+            );
+            System.out.println("--- 5 medicamentos de prueba creados ---");
+        }
+
         if (userRepository.count() > 0)
             return;
 
@@ -100,9 +139,40 @@ public class DataInitializer implements CommandLineRunner {
         // Cita de Marta con Melendez
         crearCita(melendez, p4, LocalDateTime.now().plusDays(1).withHour(11).withMinute(0), AppointmentStatus.ASSIGNED);
 
-        // Citas completadas en el pasado
-        crearCita(house, p1, LocalDateTime.now().minusDays(5).withHour(10).withMinute(0), AppointmentStatus.COMPLETED);
-        crearCita(grey, p2, LocalDateTime.now().minusDays(3).withHour(9).withMinute(0), AppointmentStatus.COMPLETED);
+        // Citas completadas y valoradas — House (Cardiología)
+        crearCitaValorada(house, p1,  LocalDateTime.now().minusDays(5).withHour(10).withMinute(0),  5);
+        crearCitaValorada(house, p2,  LocalDateTime.now().minusDays(12).withHour(9).withMinute(0),  4);
+        crearCitaValorada(house, p3,  LocalDateTime.now().minusDays(20).withHour(11).withMinute(0), 4);
+        crearCitaValorada(house, p4,  LocalDateTime.now().minusDays(30).withHour(10).withMinute(0), 3);
+        crearCitaValorada(house, p5,  LocalDateTime.now().minusDays(45).withHour(9).withMinute(0),  5);
+
+        // Citas completadas y valoradas — Grey (Digestivo)
+        crearCitaValorada(grey, p6,  LocalDateTime.now().minusDays(3).withHour(9).withMinute(0),   3);
+        crearCitaValorada(grey, p7,  LocalDateTime.now().minusDays(10).withHour(10).withMinute(0), 4);
+        crearCitaValorada(grey, p8,  LocalDateTime.now().minusDays(18).withHour(9).withMinute(0),  5);
+        crearCitaValorada(grey, p9,  LocalDateTime.now().minusDays(28).withHour(10).withMinute(0), 2);
+        crearCitaValorada(grey, p10, LocalDateTime.now().minusDays(40).withHour(9).withMinute(0),  4);
+
+        // Citas completadas y valoradas — Shepherd (Dermatología)
+        crearCitaValorada(shepherd, p1, LocalDateTime.now().minusDays(6).withHour(16).withMinute(0),  5);
+        crearCitaValorada(shepherd, p3, LocalDateTime.now().minusDays(14).withHour(17).withMinute(0), 3);
+        crearCitaValorada(shepherd, p5, LocalDateTime.now().minusDays(22).withHour(16).withMinute(0), 4);
+        crearCitaValorada(shepherd, p7, LocalDateTime.now().minusDays(35).withHour(17).withMinute(0), 4);
+        crearCitaValorada(shepherd, p9, LocalDateTime.now().minusDays(50).withHour(16).withMinute(0), 4);
+
+        // Citas completadas y valoradas — Wilson (Ginecología)
+        crearCitaValorada(wilson, p2,  LocalDateTime.now().minusDays(7).withHour(17).withMinute(0),  2);
+        crearCitaValorada(wilson, p4,  LocalDateTime.now().minusDays(15).withHour(16).withMinute(0), 3);
+        crearCitaValorada(wilson, p6,  LocalDateTime.now().minusDays(25).withHour(17).withMinute(0), 4);
+        crearCitaValorada(wilson, p8,  LocalDateTime.now().minusDays(38).withHour(16).withMinute(0), 2);
+        crearCitaValorada(wilson, p10, LocalDateTime.now().minusDays(55).withHour(17).withMinute(0), 3);
+
+        // Citas completadas y valoradas — Melendez (Pediatría) 
+        crearCitaValorada(melendez, p1, LocalDateTime.now().minusDays(4).withHour(9).withMinute(0),   5);
+        crearCitaValorada(melendez, p2, LocalDateTime.now().minusDays(11).withHour(10).withMinute(0), 5);
+        crearCitaValorada(melendez, p3, LocalDateTime.now().minusDays(19).withHour(11).withMinute(0), 5);
+        crearCitaValorada(melendez, p4, LocalDateTime.now().minusDays(33).withHour(9).withMinute(0),  4);
+        crearCitaValorada(melendez, p5, LocalDateTime.now().minusDays(48).withHour(10).withMinute(0), 5);
 
         // 4.1. BLOQUEO DEL DOCTOR
         // Bloqueo de House para mañana a las 11:00 por conferencia
@@ -180,6 +250,17 @@ public class DataInitializer implements CommandLineRunner {
         appointmentRepository.save(a);
     }
 
+    private void crearCitaValorada(Doctor d, Patient p, LocalDateTime start, int rating) {
+        Appointment a = new Appointment();
+        a.setDoctor(d);
+        a.setPatient(p);
+        a.setStartTime(start);
+        a.setDurationMinutes(60);
+        a.setStatus(AppointmentStatus.COMPLETED);
+        a.setRating(rating);
+        appointmentRepository.save(a);
+    }
+
     private void crearListaEspera(Patient p, Specialty s, UrgencyLevel urg, TimePreference pref, int diasAtras) {
         WaitingList w = new WaitingList();
         w.setPatient(p);
@@ -204,6 +285,18 @@ public class DataInitializer implements CommandLineRunner {
         bloqueo.setStatus(AppointmentStatus.BLOCKED);
         bloqueo.setNotes(reason);
         appointmentRepository.save(bloqueo);
+    }
+
+    private void crearMedicamento(String nombre, String principioActivo, String categoria,
+                                   String dosis, String descripcion, String imageUrl) {
+        Medication m = new Medication();
+        m.setName(nombre);
+        m.setActiveIngredient(principioActivo);
+        m.setCategory(categoria);
+        m.setDosage(dosis);
+        m.setDescription(descripcion);
+        m.setImageUrl(imageUrl);
+        medicationRepository.save(m);
     }
 
 }
