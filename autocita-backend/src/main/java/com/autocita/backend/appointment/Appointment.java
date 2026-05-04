@@ -47,6 +47,9 @@ public class Appointment extends BaseEntity {
     @Column(name = "offered_at")
     private LocalDateTime offeredAt;
 
+    @Column(name = "rating")
+    private Integer rating;
+
     // DOCTOR
     @ManyToOne(fetch = FetchType.LAZY) 
     @JoinColumn(name = "doctor_id", nullable = false)
