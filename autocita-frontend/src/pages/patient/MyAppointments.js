@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import AppointmentDetailModal from '../../components/AppointmentDetailModal';
 
 function MyAppointments({ authHeader, patientId }) {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('todas'); // 'todas', 'proximas', 'canceladas'
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
 
   useEffect(() => {
     if (patientId) {
@@ -203,7 +205,12 @@ function MyAppointments({ authHeader, patientId }) {
                       justifyContent: 'space-between',
                       alignItems: 'center',
                       gap: '16px',
-                      transition: 'all 0.2s ease'
+                      transition: 'all 0.2s ease',
+                      cursor: 'pointer'
+                    }}
+                    onClick={e => {
+                      if (e.target.tagName === 'BUTTON') return;
+                      setSelectedAppointment(app);
                     }}
                     onMouseEnter={e => {
                       e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.08)';
@@ -213,6 +220,7 @@ function MyAppointments({ authHeader, patientId }) {
                       e.currentTarget.style.boxShadow = 'none';
                       e.currentTarget.style.transform = 'translateY(0)';
                     }}
+                    title="Ver detalle de la cita"
                   >
                     <div style={{ flex: 1 }}>
                       <p style={{ margin: '0 0 6px 0', fontWeight: '600', color: '#1e293b', fontSize: '14px' }}>
@@ -284,6 +292,12 @@ function MyAppointments({ authHeader, patientId }) {
             </div>
           )}
         </>
+      )}
+      {selectedAppointment && (
+        <AppointmentDetailModal
+          appointment={selectedAppointment}
+          onClose={() => setSelectedAppointment(null)}
+        />
       )}
     </div>
   );
