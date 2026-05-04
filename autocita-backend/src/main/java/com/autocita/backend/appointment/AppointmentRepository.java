@@ -75,7 +75,7 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
 
         long countByDoctorIdAndStatusIn(Integer doctorId, List<AppointmentStatus> statuses);
 
-        // MEJORADO: Buscar cita por doctor+hora EXCLUYENDO estados inactivos (REJECTED)
+        // Buscar cita por doctor+hora EXCLUYENDO estados inactivos (REJECTED)
         @Query("SELECT a FROM Appointment a " +
                         "WHERE a.doctor.id = :doctorId " +
                         "AND a.startTime = :startTime " +
@@ -84,4 +84,17 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
         Optional<Appointment> findByDoctorIdAndStartTimeActiveOnly(
                         @Param("doctorId") Integer doctorId,
                         @Param("startTime") LocalDateTime startTime);
+
+        @Query("SELECT a FROM Appointment a " +
+                        "WHERE a.status = 'ASSIGNED' AND a.startTime <= :limit")
+        List<Appointment> findPastAssignedAppointments(
+                        @org.springframework.data.repository.query.Param("limit") java.time.LocalDateTime limit);
+
+        long countByDoctorIdAndIsReassignedTrue(Integer doctorId);
+
+        @Query("SELECT AVG(a.rating) FROM Appointment a WHERE a.doctor.id = :doctorId AND a.rating IS NOT NULL")
+        Double getAverageRatingByDoctorId(@Param("doctorId") Integer doctorId);
+
+        @Query("SELECT COUNT(a) FROM Appointment a WHERE a.doctor.id = :doctorId AND a.rating IS NOT NULL")
+        Long countRatedByDoctorId(@Param("doctorId") Integer doctorId);
 }
