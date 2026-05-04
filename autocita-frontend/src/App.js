@@ -28,7 +28,7 @@ function App() {
 
   const API_URL = process.env.REACT_APP_API_URL;
 
-  // --- LÓGICA DE NOTIFICACIONES ---
+  // LÓGICA DE NOTIFICACIONES
   const fetchOffers = async () => {
     // Usamos user.authHeader si está logueado, sino el estado authHeader
     const token = user?.authHeader || authHeader;
