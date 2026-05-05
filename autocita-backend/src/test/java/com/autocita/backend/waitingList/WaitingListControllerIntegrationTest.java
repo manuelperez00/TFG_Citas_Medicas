@@ -3,6 +3,8 @@ package com.autocita.backend.waitingList;
 import com.autocita.backend.appointment.AppointmentRepository;
 import com.autocita.backend.doctor.DoctorRepository;
 import com.autocita.backend.doctor.Specialty;
+import com.autocita.backend.reassignmentLog.ReassignmentLogRepository;
+import com.autocita.backend.prescription.PrescriptionRepository;
 import com.autocita.backend.patient.Patient;
 import com.autocita.backend.patient.PatientRepository;
 import com.autocita.backend.security.Role;
@@ -33,19 +35,33 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 class WaitingListControllerIntegrationTest {
 
-    @Autowired private MockMvc mockMvc;
-    @Autowired private WaitingListRepository waitingListRepository;
-    @Autowired private PatientRepository patientRepository;
-    @Autowired private UserRepository userRepository;
-    @Autowired private AppointmentRepository appointmentRepository;
-    @Autowired private DoctorRepository doctorRepository;
-    @Autowired private PasswordEncoder passwordEncoder;
-    @MockBean  private JavaMailSender mailSender;
+    @Autowired
+    private MockMvc mockMvc;
+    @Autowired
+    private WaitingListRepository waitingListRepository;
+    @Autowired
+    private PatientRepository patientRepository;
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private AppointmentRepository appointmentRepository;
+    @Autowired
+    private DoctorRepository doctorRepository;
+    @Autowired
+    private ReassignmentLogRepository reassignmentLogRepository;
+    @Autowired
+    private PrescriptionRepository prescriptionRepository;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    @MockBean
+    private JavaMailSender mailSender;
 
     private Patient savedPatient;
 
     @BeforeEach
     void setUp() {
+        prescriptionRepository.deleteAll();
+        reassignmentLogRepository.deleteAll();
         waitingListRepository.deleteAll();
         appointmentRepository.deleteAll();
         patientRepository.deleteAll();
@@ -56,7 +72,6 @@ class WaitingListControllerIntegrationTest {
         user.setUsername("user");
         user.setPassword(passwordEncoder.encode("password"));
         user.setRole(Role.PATIENT);
-        user = userRepository.save(user);
 
         savedPatient = new Patient();
         savedPatient.setFirstName("Francesca");
@@ -85,11 +100,11 @@ class WaitingListControllerIntegrationTest {
         String futureDate = LocalDate.now().plusDays(5).toString();
 
         mockMvc.perform(post("/api/waiting-list")
-                        .param("patientId", savedPatient.getId().toString())
-                        .param("specialty", "CARDIOLOGY")
-                        .param("urgency", "HIGH")
-                        .param("timePref", "MORNING")
-                        .param("preferredDate", futureDate))
+                .param("patientId", savedPatient.getId().toString())
+                .param("specialty", "CARDIOLOGY")
+                .param("urgency", "HIGH")
+                .param("timePref", "MORNING")
+                .param("preferredDate", futureDate))
                 .andExpect(status().isOk())
                 .andExpect(content().string("Añadido a lista de espera"));
     }
@@ -109,11 +124,11 @@ class WaitingListControllerIntegrationTest {
         waitingListRepository.save(existing);
 
         mockMvc.perform(post("/api/waiting-list")
-                        .param("patientId", savedPatient.getId().toString())
-                        .param("specialty", "DERMATOLOGY")
-                        .param("urgency", "LOW")
-                        .param("timePref", "ANY")
-                        .param("preferredDate", LocalDate.now().plusDays(2).toString()))
+                .param("patientId", savedPatient.getId().toString())
+                .param("specialty", "DERMATOLOGY")
+                .param("urgency", "LOW")
+                .param("timePref", "ANY")
+                .param("preferredDate", LocalDate.now().plusDays(2).toString()))
                 .andExpect(status().isBadRequest());
     }
 
@@ -132,7 +147,7 @@ class WaitingListControllerIntegrationTest {
         entry = waitingListRepository.save(entry);
 
         mockMvc.perform(delete("/api/waiting-list/{waitingListId}", entry.getId())
-                        .param("patientId", savedPatient.getId().toString()))
+                .param("patientId", savedPatient.getId().toString()))
                 .andExpect(status().isOk())
                 .andExpect(content().string("Solicitud eliminada de la lista de espera"));
     }

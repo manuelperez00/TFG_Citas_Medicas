@@ -6,6 +6,8 @@ import com.autocita.backend.security.Role;
 import com.autocita.backend.security.User;
 import com.autocita.backend.security.UserRepository;
 import com.autocita.backend.waitingList.WaitingListRepository;
+import com.autocita.backend.reassignmentLog.ReassignmentLogRepository;
+import com.autocita.backend.prescription.PrescriptionRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +36,8 @@ class DoctorControllerIntegrationTest {
     @Autowired private PatientRepository patientRepository;
     @Autowired private AppointmentRepository appointmentRepository;
     @Autowired private WaitingListRepository waitingListRepository;
+    @Autowired private ReassignmentLogRepository reassignmentLogRepository;
+    @Autowired private PrescriptionRepository prescriptionRepository;
     @Autowired private PasswordEncoder passwordEncoder;
     @MockBean  private JavaMailSender mailSender;
 
@@ -41,6 +45,8 @@ class DoctorControllerIntegrationTest {
 
     @BeforeEach
     void setUp() {
+        prescriptionRepository.deleteAll();
+        reassignmentLogRepository.deleteAll();
         waitingListRepository.deleteAll();
         appointmentRepository.deleteAll();
         patientRepository.deleteAll();

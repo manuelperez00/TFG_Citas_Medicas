@@ -6,6 +6,8 @@ import com.autocita.backend.security.Role;
 import com.autocita.backend.security.User;
 import com.autocita.backend.security.UserRepository;
 import com.autocita.backend.waitingList.WaitingListRepository;
+import com.autocita.backend.reassignmentLog.ReassignmentLogRepository;
+import com.autocita.backend.prescription.PrescriptionRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,19 +33,33 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 class PatientControllerIntegrationTest {
 
-    @Autowired private MockMvc mockMvc;
-    @Autowired private PatientRepository patientRepository;
-    @Autowired private UserRepository userRepository;
-    @Autowired private WaitingListRepository waitingListRepository;
-    @Autowired private AppointmentRepository appointmentRepository;
-    @Autowired private DoctorRepository doctorRepository;
-    @Autowired private PasswordEncoder passwordEncoder;
-    @MockBean  private JavaMailSender mailSender;
+    @Autowired
+    private MockMvc mockMvc;
+    @Autowired
+    private PatientRepository patientRepository;
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private WaitingListRepository waitingListRepository;
+    @Autowired
+    private AppointmentRepository appointmentRepository;
+    @Autowired
+    private DoctorRepository doctorRepository;
+    @Autowired
+    private ReassignmentLogRepository reassignmentLogRepository;
+    @Autowired
+    private PrescriptionRepository prescriptionRepository;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    @MockBean
+    private JavaMailSender mailSender;
 
     private Patient savedPatient;
 
     @BeforeEach
     void setUp() {
+        prescriptionRepository.deleteAll();
+        reassignmentLogRepository.deleteAll();
         waitingListRepository.deleteAll();
         appointmentRepository.deleteAll();
         patientRepository.deleteAll();
@@ -54,7 +70,6 @@ class PatientControllerIntegrationTest {
         user.setUsername("user");
         user.setPassword(passwordEncoder.encode("password"));
         user.setRole(Role.PATIENT);
-        user = userRepository.save(user);
 
         Patient patient = new Patient();
         patient.setFirstName("María");
@@ -105,8 +120,8 @@ class PatientControllerIntegrationTest {
     @WithMockUser(username = "user", roles = "PATIENT")
     void updateMyPatient_updatesPhone() throws Exception {
         mockMvc.perform(put("/api/patients/me")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"phone\":\"699888777\"}"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"phone\":\"699888777\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.phone").value("699888777"));
     }

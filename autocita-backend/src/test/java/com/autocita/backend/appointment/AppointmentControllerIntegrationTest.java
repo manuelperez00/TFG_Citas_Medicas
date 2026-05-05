@@ -10,6 +10,8 @@ import com.autocita.backend.security.Role;
 import com.autocita.backend.security.User;
 import com.autocita.backend.security.UserRepository;
 import com.autocita.backend.waitingList.WaitingListRepository;
+import com.autocita.backend.reassignmentLog.ReassignmentLogRepository;
+import com.autocita.backend.prescription.PrescriptionRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,14 +39,26 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 class AppointmentControllerIntegrationTest {
 
-    @Autowired private MockMvc mockMvc;
-    @Autowired private AppointmentRepository appointmentRepository;
-    @Autowired private DoctorRepository doctorRepository;
-    @Autowired private PatientRepository patientRepository;
-    @Autowired private UserRepository userRepository;
-    @Autowired private WaitingListRepository waitingListRepository;
-    @Autowired private PasswordEncoder passwordEncoder;
-    @MockBean  private JavaMailSender mailSender;
+    @Autowired
+    private MockMvc mockMvc;
+    @Autowired
+    private AppointmentRepository appointmentRepository;
+    @Autowired
+    private DoctorRepository doctorRepository;
+    @Autowired
+    private PatientRepository patientRepository;
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private WaitingListRepository waitingListRepository;
+    @Autowired
+    private ReassignmentLogRepository reassignmentLogRepository;
+    @Autowired
+    private PrescriptionRepository prescriptionRepository;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    @MockBean
+    private JavaMailSender mailSender;
 
     private Doctor savedDoctor;
     private Patient savedPatient;
@@ -52,6 +66,8 @@ class AppointmentControllerIntegrationTest {
 
     @BeforeEach
     void setUp() {
+        prescriptionRepository.deleteAll();
+        reassignmentLogRepository.deleteAll();
         waitingListRepository.deleteAll();
         appointmentRepository.deleteAll();
         patientRepository.deleteAll();
@@ -79,7 +95,6 @@ class AppointmentControllerIntegrationTest {
         patientUser.setUsername("patient");
         patientUser.setPassword(passwordEncoder.encode("password"));
         patientUser.setRole(Role.PATIENT);
-        patientUser = userRepository.save(patientUser);
 
         savedPatient = new Patient();
         savedPatient.setFirstName("María");
@@ -134,12 +149,12 @@ class AppointmentControllerIntegrationTest {
         LocalDateTime futureTime = LocalDateTime.now().plusDays(10)
                 .withHour(11).withMinute(0).withSecond(0).withNano(0);
         String body = "{\"doctorId\":" + savedDoctor.getId() +
-                      ",\"patientId\":" + savedPatient.getId() +
-                      ",\"startTime\":\"" + futureTime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) + "\"}";
+                ",\"patientId\":" + savedPatient.getId() +
+                ",\"startTime\":\"" + futureTime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) + "\"}";
 
         mockMvc.perform(post("/api/appointments")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(body))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("ASSIGNED"));
     }
