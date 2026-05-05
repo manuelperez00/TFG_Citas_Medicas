@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+const API_URL = process.env.REACT_APP_API_URL;
+
 const SPECIALTY_ES = {
   PEDIATRICS: 'Pediatría', DERMATOLOGY: 'Dermatología', CARDIOLOGY: 'Cardiología',
   GYNECOLOGY: 'Ginecología', DIGESTIVE: 'Digestivo', FAMILY_MEDICINE: 'Medicina de Familia',
@@ -30,7 +32,7 @@ function DoctorHome({ authHeader, doctorId }) {
     console.log('DoctorHome: Loading data for doctorId:', doctorId);
 
     // Cargar datos del doctor
-    fetch(`http://localhost:8080/api/doctors/${doctorId}`, {
+    fetch(`${API_URL}/api/doctors/${doctorId}`, {
       headers: { 'Authorization': authHeader }
     })
     .then(res => res.json())
@@ -38,7 +40,7 @@ function DoctorHome({ authHeader, doctorId }) {
     .catch(err => console.error('Error fetching doctor data:', err));
 
     // Cargar citas del doctor
-    fetch(`http://localhost:8080/api/appointments/doctor/${doctorId}`, {
+    fetch(`${API_URL}/api/appointments/doctor/${doctorId}`, {
       headers: { 'Authorization': authHeader }
     })
     .then(res => res.json())

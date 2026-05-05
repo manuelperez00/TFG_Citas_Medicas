@@ -1,13 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import DoctorProfile from './DoctorProfile';
+import { useModal } from '../../components/AppModal';
+
+const API_URL = process.env.REACT_APP_API_URL;
 
 function ProfilePage({ authHeader, doctorId }) {
+  const { showAlert } = useModal();
   const [doctorData, setDoctorData] = useState(null);
 
   useEffect(() => {
     console.log('ProfilePage load, doctorId', doctorId);
     if (doctorId) {
-      fetch(`http://localhost:8080/api/doctors/${doctorId}`, {
+      fetch(`${API_URL}/api/doctors/${doctorId}`, {
         headers: { 'Authorization': authHeader }
       })
         .then(res => {
@@ -29,14 +33,14 @@ function ProfilePage({ authHeader, doctorId }) {
   }, [doctorId, authHeader]);
 
   const handleShiftChange = (newShift) => {
-    return fetch(`http://localhost:8080/api/doctors/${doctorId}/shift`, {
+    return fetch(`${API_URL}/api/doctors/${doctorId}/shift`, {
       method: 'PUT',
       headers: { 'Authorization': authHeader, 'Content-Type': 'application/json' },
       body: JSON.stringify({ workShift: newShift })
     }).then(res => {
       if (res.ok) {
         setDoctorData({ ...doctorData, workShift: newShift });
-        alert('☀️ Turno actualizado');
+        showAlert('✅ Turno actualizado correctamente');
       }
       return res.ok;
     });
@@ -45,7 +49,7 @@ function ProfilePage({ authHeader, doctorId }) {
   const handleUpdate = async (updatedFields) => {
     if (!authHeader) return false;
     try {
-      const resp = await fetch('http://localhost:8080/api/doctors/me', {
+      const resp = await fetch('${API_URL}/api/doctors/me', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: authHeader },
         body: JSON.stringify(updatedFields)

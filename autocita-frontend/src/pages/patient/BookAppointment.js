@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useModal } from '../../components/AppModal';
 
 const SPECIALTY_ES = {
   PEDIATRICS: 'Pediatría',
@@ -40,6 +41,7 @@ function StarsBadge({ avgRating, totalRatings }) {
 }
 
 function BookAppointment({ authHeader, patientId }) {
+  const { showAlert } = useModal();
   const [doctors, setDoctors] = useState([]);
   const [doctorRatings, setDoctorRatings] = useState({});
   const [selectedDoctor, setSelectedDoctor] = useState(null);
@@ -143,7 +145,7 @@ function BookAppointment({ authHeader, patientId }) {
   const executeBooking = () => {
     // Validar antes de enviar
     if (!canBookSlot(selectedTime)) {
-      alert("❌ Esta cita viola las limitaciones diarias:\n\n• Máximo 1 cita por especialidad por día\n• Máximo 2 citas de diferentes especialidades por día\n• Evita overlaps de horarios\n\nSelecciona otro día u hora.");
+      showAlert("❌ Esta cita viola las limitaciones diarias:\n\n• Máximo 1 cita por especialidad por día\n• Máximo 2 citas de diferentes especialidades por día\n• Evita overlaps de horarios\n\nSelecciona otro día u hora.");
       return;
     }
 
@@ -162,7 +164,7 @@ function BookAppointment({ authHeader, patientId }) {
       if (!res.ok) throw new Error(await res.text());
       setShowModal(false);
       setSelectedTime(null);
-      alert("✅ Solicitud enviada con éxito");
+      showAlert("✅ Solicitud enviada con éxito");
       
       // Recargar citas del paciente después de confirmar
       fetch(`${API_URL}/api/appointments/patient/${patientId}`, {
@@ -174,7 +176,7 @@ function BookAppointment({ authHeader, patientId }) {
       
       fetchDoctorAppointments(selectedDoctor.id);
     })
-    .catch(err => alert("❌ Error: " + err.message));
+    .catch(err => showAlert("❌ Error: " + err.message));
   };
 
   const getSlotStatus = (time) => {

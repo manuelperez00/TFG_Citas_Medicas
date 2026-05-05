@@ -90,7 +90,7 @@ function Home({ user, authHeader, patientId }) {
     // Simplemente refrescar estadísticas
     if (!patientId) return;
 
-    fetch(`http://localhost:8080/api/appointments/patient/${patientId}`, {
+    fetch(`${API_URL}/api/appointments/patient/${patientId}`, {
       headers: { Authorization: authHeader }
     })
       .then(res => res.json())

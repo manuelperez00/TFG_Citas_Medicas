@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import DoctorStats from './DoctorStats';
 import AppointmentTable from './AppointmentTable';
 
+const API_URL = process.env.REACT_APP_API_URL;
+
 function Agenda({ authHeader, doctorId }) {
   const [appointments, setAppointments] = useState([]);
   const [stats, setStats] = useState({ pending: 0, confirmed: 0 });
@@ -23,7 +25,7 @@ function Agenda({ authHeader, doctorId }) {
 
   const fetchProfile = () => {
     console.log('Agenda fetchProfile doctorId', doctorId);
-    fetch(`http://localhost:8080/api/doctors/${doctorId}`, {
+    fetch(`${API_URL}/api/doctors/${doctorId}`, {
       headers: { 'Authorization': authHeader }
     })
       .then(res => {
@@ -42,7 +44,7 @@ function Agenda({ authHeader, doctorId }) {
 
   const fetchAppointments = () => {
     setLoading(true);
-    fetch(`http://localhost:8080/api/appointments/doctor/${doctorId}`, {
+    fetch(`${API_URL}/api/appointments/doctor/${doctorId}`, {
       headers: { 'Authorization': authHeader }
     })
       .then(res => res.json())
@@ -62,7 +64,7 @@ function Agenda({ authHeader, doctorId }) {
   };
 
   const fetchStats = () => {
-    fetch(`http://localhost:8080/api/appointments/doctor/${doctorId}/stats`, {
+    fetch(`${API_URL}/api/appointments/doctor/${doctorId}/stats`, {
       headers: { 'Authorization': authHeader }
     })
       .then(res => res.ok ? res.json() : {})
@@ -74,7 +76,7 @@ function Agenda({ authHeader, doctorId }) {
   };
 
   const handleAttend = (id) => {
-    fetch(`http://localhost:8080/api/appointments/${id}/confirm`, {
+    fetch(`${API_URL}/api/appointments/${id}/confirm`, {
       method: 'PUT', headers: { 'Authorization': authHeader }
     }).then(res => { if (res.ok) { fetchAppointments(); fetchStats(); } });
   };
@@ -82,7 +84,7 @@ function Agenda({ authHeader, doctorId }) {
 
 
   const confirmBlock = () => {
-    fetch(`http://localhost:8080/api/appointments/${selectedAppId}/block`, {
+    fetch(`${API_URL}/api/appointments/${selectedAppId}/block`, {
       method: 'POST', headers: { 'Authorization': authHeader, 'Content-Type': 'application/json' },
       body: JSON.stringify({ reason: blockReason })
     }).then(res => {

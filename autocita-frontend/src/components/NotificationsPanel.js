@@ -1,9 +1,11 @@
 import React from 'react';
+import { useModal } from './AppModal';
 
 const API_URL = process.env.REACT_APP_API_URL;
 
 function NotificationsPanel({ offers, onRefresh, close, authHeader }) {
-  
+  const { showAlert } = useModal();
+
   const handleAction = async (id, accepted) => {
     try {
       console.log(`📤 Enviando respuesta: Cita ID ${id}, Aceptada: ${accepted}`);
@@ -20,11 +22,11 @@ function NotificationsPanel({ offers, onRefresh, close, authHeader }) {
       } else {
         const errorText = await res.text();
         console.error(`❌ Error en la respuesta: ${res.status} - ${errorText}`);
-        alert(`Error al procesar tu respuesta: ${errorText}`);
+        showAlert(`❌ Error al procesar tu respuesta: ${errorText}`);
       }
     } catch (err) {
       console.error("❌ Error de conexión al responder oferta:", err);
-      alert("Error de conexión. Por favor, intenta de nuevo.");
+      showAlert("❌ Error de conexión. Por favor, intenta de nuevo.");
     }
   };
 

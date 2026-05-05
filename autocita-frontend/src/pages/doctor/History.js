@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import AppointmentTable from './AppointmentTable';
 import AppointmentDetailModal from '../../components/AppointmentDetailModal';
 
+const API_URL = process.env.REACT_APP_API_URL;
+
 const STATUS_LABELS = {
   ALL: 'Todos los estados',
   ASSIGNED: 'Confirmada',
@@ -28,7 +30,7 @@ function History({ authHeader, doctorId }) {
 
   const fetchAppointments = () => {
     setLoading(true);
-    fetch(`http://localhost:8080/api/appointments/doctor/${doctorId}`, {
+    fetch(`${API_URL}/api/appointments/doctor/${doctorId}`, {
       headers: { 'Authorization': authHeader }
     })
       .then(res => res.json())

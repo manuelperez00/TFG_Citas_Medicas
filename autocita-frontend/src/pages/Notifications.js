@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useModal } from '../components/AppModal';
+
+const API_URL = process.env.REACT_APP_API_URL;
 
 function Notifications({ authHeader, patientId, onRefresh }) {
+  const { showAlert } = useModal();
   const [offers, setOffers] = useState([]);
 
   useEffect(() => {
@@ -14,7 +18,7 @@ function Notifications({ authHeader, patientId, onRefresh }) {
 
   const fetchOffers = async () => {
     try {
-      const res = await fetch(`http://localhost:8080/api/appointments/patient/${patientId}`, {
+      const res = await fetch(`${API_URL}/api/appointments/patient/${patientId}`, {
         headers: { 'Authorization': authHeader }
       });
       const data = await res.json();
@@ -30,7 +34,7 @@ function Notifications({ authHeader, patientId, onRefresh }) {
       try {
         console.log(`📤 Respondiendo oferta ${appointmentId}: ${accepted ? 'Aceptar' : 'Rechazar'}`);
         
-        const response = await fetch(`http://localhost:8080/api/appointments/${appointmentId}/respond-offer?accepted=${accepted}`, {
+        const response = await fetch(`${API_URL}/api/appointments/${appointmentId}/respond-offer?accepted=${accepted}`, {
           method: 'POST',
           headers: { 'Authorization': authHeader }
         });
@@ -38,18 +42,18 @@ function Notifications({ authHeader, patientId, onRefresh }) {
         if (response.ok) {
           console.log(`✅ Respuesta procesada exitosamente`);
           setOffers(prev => prev.filter(o => o.id !== appointmentId));
-          alert(accepted ? "✅ ¡Cita confirmada!" : "❌ Oferta rechazada - Se ofrecerá a otro paciente");
+          showAlert(accepted ? "✅ ¡Cita confirmada!" : "❌ Oferta rechazada - Se ofrecerá a otro paciente");
           if (onRefresh) onRefresh();
         } else {
           const errorText = await response.text();
           console.error(`❌ Error: ${response.status} - ${errorText}`);
           setOffers(prev => prev.filter(o => o.id !== appointmentId));
-          alert("Lo sentimos, esta oferta ya no está disponible.");
+          showAlert("⚠️ Lo sentimos, esta oferta ya no está disponible.");
           if (onRefresh) onRefresh();
         }
       } catch (err) {
         console.error("Error de red:", err);
-        alert("Error de conexión. Por favor, intenta de nuevo.");
+        showAlert("❌ Error de conexión. Por favor, intenta de nuevo.");
       }
   };
 

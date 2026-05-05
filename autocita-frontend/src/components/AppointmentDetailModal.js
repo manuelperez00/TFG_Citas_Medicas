@@ -231,7 +231,7 @@ function RatingSection({ appointment, authHeader }) {
 
   const handleRate = (star) => {
     setSaving(true);
-    fetch(`http://localhost:8080/api/appointments/${appointment.id}/rating`, {
+    fetch(`${API_URL}/api/appointments/${appointment.id}/rating`, {
       method: 'PATCH',
       headers: { Authorization: authHeader, 'Content-Type': 'application/json' },
       body: JSON.stringify({ rating: star })

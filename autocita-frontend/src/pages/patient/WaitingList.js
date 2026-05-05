@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useModal } from '../../components/AppModal';
 
 const API_URL = process.env.REACT_APP_API_URL;
 
 function WaitingList({ authHeader, patientId }) {
+  const { showAlert, showConfirm } = useModal();
   const [activeItems, setActiveItems] = useState([]);
   const [offeredItems, setOfferedItems] = useState([]);
   const [acceptedItems, setAcceptedItems] = useState([]);
@@ -165,18 +167,14 @@ function WaitingList({ authHeader, patientId }) {
     })
     .then(async res => {
       if (!res.ok) throw new Error(await res.text());
-      alert("✅ ¡Añadido a la lista de espera con éxito!");
+      showAlert("✅ ¡Añadido a la lista de espera con éxito!");
       fetchMyList();
     })
-    .catch(err => alert("❌ Error: " + err.message));
+    .catch(err => showAlert("❌ Error: " + err.message));
   };
 
-  const handleDeleteWaitingList = (waitingListId) => {
-    const confirmed = window.confirm(
-      "¿Estás seguro de que deseas eliminar esta solicitud de lista de espera? No podrás recuperarla."
-    );
-    
-    if (!confirmed) return;
+  const handleDeleteWaitingList = async (waitingListId) => {
+    if (!await showConfirm("¿Estás seguro de que deseas eliminar esta solicitud de lista de espera? No podrás recuperarla.")) return;
 
     const url = new URL(`${API_URL}/api/waiting-list/${waitingListId}`);
     url.searchParams.append('patientId', patientId);
@@ -187,10 +185,10 @@ function WaitingList({ authHeader, patientId }) {
     })
     .then(async res => {
       if (!res.ok) throw new Error(await res.text());
-      alert("✅ ¡Solicitud eliminada correctamente!");
+      showAlert("✅ ¡Solicitud eliminada correctamente!");
       fetchMyList();
     })
-    .catch(err => alert("❌ Error al eliminar la solicitud: " + err.message));
+    .catch(err => showAlert("❌ Error al eliminar la solicitud: " + err.message));
   };
 
   // Función para renderizar tarjetas de solicitudes

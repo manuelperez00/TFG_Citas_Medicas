@@ -6,8 +6,12 @@ import DoctorProfile from './DoctorProfile';
 import DoctorReassignmentStats from './DoctorReassignmentStats';
 import AppointmentDetailModal from '../../components/AppointmentDetailModal';
 import History from './History';
+import { useModal } from '../../components/AppModal';
+
+const API_URL = process.env.REACT_APP_API_URL;
 
 function DoctorDashboard({ authHeader, doctorId, onLogout }) {
+  const { showAlert, showConfirm } = useModal();
   const [appointments, setAppointments] = useState([]);
   const [doctorData, setDoctorData] = useState(null);
   const [stats, setStats] = useState({ pending: 0, confirmed: 0 }); // nuevos datos
@@ -41,7 +45,7 @@ function DoctorDashboard({ authHeader, doctorId, onLogout }) {
 
   useEffect(() => {
     if (doctorId) {
-      fetch(`http://localhost:8080/api/doctors/${doctorId}`, {
+      fetch(`${API_URL}/api/doctors/${doctorId}`, {
         headers: { 'Authorization': authHeader }
       })
       .then(res => res.json())
@@ -64,7 +68,7 @@ function DoctorDashboard({ authHeader, doctorId, onLogout }) {
 
   const fetchAppointments = () => {
     setLoading(true);
-    fetch(`http://localhost:8080/api/appointments/doctor/${doctorId}`, {
+    fetch(`${API_URL}/api/appointments/doctor/${doctorId}`, {
       headers: { 'Authorization': authHeader }
     })
     .then(res => res.json())
@@ -82,7 +86,7 @@ function DoctorDashboard({ authHeader, doctorId, onLogout }) {
 
   const fetchStats = () => {
     console.log('Requesting stats for doctor', doctorId);
-    fetch(`http://localhost:8080/api/appointments/doctor/${doctorId}/stats`, {
+    fetch(`${API_URL}/api/appointments/doctor/${doctorId}/stats`, {
       headers: { 'Authorization': authHeader }
     })
     .then(res => {
@@ -101,7 +105,7 @@ function DoctorDashboard({ authHeader, doctorId, onLogout }) {
 
   const fetchBlocked = () => {
     console.log('🔍 fetchBlocked: Solicitando lista de bloques del doctor', doctorId);
-    fetch(`http://localhost:8080/api/appointments/doctor/${doctorId}`, {
+    fetch(`${API_URL}/api/appointments/doctor/${doctorId}`, {
       headers: { 'Authorization': authHeader }
     })
     .then(res => {
@@ -124,7 +128,7 @@ function DoctorDashboard({ authHeader, doctorId, onLogout }) {
     })
     .catch(err => {
       console.error('❌ Error fetching blocked:', err);
-      alert('⚠️ Error al cargar bloques: ' + err.message);
+      showAlert('⚠️ Error al cargar bloques: ' + err.message);
     });
   };
 
@@ -143,15 +147,15 @@ function DoctorDashboard({ authHeader, doctorId, onLogout }) {
   });
 
   const handleAttend = (appointmentId) => {
-    fetch(`http://localhost:8080/api/appointments/${appointmentId}/confirm`, {
+    fetch(`${API_URL}/api/appointments/${appointmentId}/confirm`, {
       method: 'PUT',
       headers: { 'Authorization': authHeader }
     }).then(res => { if (res.ok) { fetchAppointments(); fetchStats(); } });
   };
 
-  const handleCancel = (appointmentId) => {
-    if (!window.confirm("¿Deseas anular la cita y liberar el hueco?")) return;
-    fetch(`http://localhost:8080/api/appointments/${appointmentId}/reject`, {
+  const handleCancel = async (appointmentId) => {
+    if (!await showConfirm("¿Deseas anular la cita y liberar el hueco?")) return;
+    fetch(`${API_URL}/api/appointments/${appointmentId}/reject`, {
       method: 'PUT',
       headers: { 'Authorization': authHeader }
     }).then(res => { if (res.ok) { fetchAppointments(); fetchStats(); fetchBlocked(); } });
@@ -159,7 +163,7 @@ function DoctorDashboard({ authHeader, doctorId, onLogout }) {
 
   const handleProfileUpdate = async (updatedFields) => {
     try {
-      const resp = await fetch('http://localhost:8080/api/doctors/me', {
+      const resp = await fetch('${API_URL}/api/doctors/me', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: authHeader },
         body: JSON.stringify(updatedFields)
@@ -174,14 +178,14 @@ function DoctorDashboard({ authHeader, doctorId, onLogout }) {
   };
 
   const handleChangeShift = (newShift) => {
-    fetch(`http://localhost:8080/api/doctors/${doctorId}/shift`, {
+    fetch(`${API_URL}/api/doctors/${doctorId}/shift`, {
       method: 'PUT',
       headers: { 'Authorization': authHeader, 'Content-Type': 'application/json' },
       body: JSON.stringify({ workShift: newShift })
     }).then(res => {
       if (res.ok) {
         setDoctorData({ ...doctorData, workShift: newShift });
-        alert("☀️ Turno actualizado");
+        showAlert("✅ Turno actualizado correctamente");
       }
     });
   };
@@ -401,13 +405,13 @@ function DoctorDashboard({ authHeader, doctorId, onLogout }) {
 
     // Mostrar error si hay alguno
     if (validationError) {
-      alert(validationError);
+      showAlert(validationError);
       return;
     }
 
     // Validar que haya bloques para crear
     if (blocksToCreate.length === 0) {
-      alert('❌ No hay bloques válidos para crear.');
+      showAlert('❌ No hay bloques válidos para crear.');
       return;
     }
 
@@ -416,7 +420,7 @@ function DoctorDashboard({ authHeader, doctorId, onLogout }) {
     const totalBlocks = blocksToCreate.length;
 
     blocksToCreate.forEach((block) => {
-      fetch(`http://localhost:8080/api/appointments/doctor/${doctorId}/block`, {
+      fetch(`${API_URL}/api/appointments/doctor/${doctorId}/block`, {
         method: 'POST',
         headers: { 'Authorization': authHeader, 'Content-Type': 'application/json' },
         body: JSON.stringify({ startTime: block.startTime.toISOString(), endTime: block.endTime.toISOString(), reason: blockReason })
@@ -428,7 +432,7 @@ function DoctorDashboard({ authHeader, doctorId, onLogout }) {
             setShowBlockModal(false);
             setBlockReason("");
             setSelectedAppId(null);
-            alert("✅ Bloqueo" + (totalBlocks > 1 ? "s" : "") + " creado exitosamente");
+            showAlert("✅ Bloqueo" + (totalBlocks > 1 ? "s" : "") + " creado exitosamente");
             fetchAppointments();
             fetchStats();
             fetchBlocked();
@@ -436,7 +440,7 @@ function DoctorDashboard({ authHeader, doctorId, onLogout }) {
         } else {
           const text = await res.text();
           // Mostrar el mensaje del backend de forma más legible
-          alert('⚠️ No se puede crear el bloqueo:\n\n' + text);
+          showAlert('⚠️ No se puede crear el bloqueo:\n\n' + text);
         }
       });
     });
@@ -445,7 +449,7 @@ function DoctorDashboard({ authHeader, doctorId, onLogout }) {
   // 🔧 Crear bloques basado en horas seleccionadas del grid visual
   const createBlocksFromSelection = () => {
     if (selectedHoursToBlock.length === 0) {
-      alert("❌ Selecciona al menos una hora para bloquear.");
+      showAlert("❌ Selecciona al menos una hora para bloquear.");
       return;
     }
 
@@ -466,7 +470,7 @@ function DoctorDashboard({ authHeader, doctorId, onLogout }) {
     for (let hour of selectedHoursToBlock) {
       const status = getHourStatusForBlock(blockGridDate, hour);
       if (status === 'OCCUPIED' || status === 'WITHIN_24H' || status === 'PAST') {
-        alert(`❌ No puedes bloquear ${hour}: ${status === 'OCCUPIED' ? 'Hay una cita asignada' : status === 'WITHIN_24H' ? 'Está dentro de las 24 horas' : 'La hora ha pasado'}`);
+        showAlert(`❌ No puedes bloquear ${hour}: ${status === 'OCCUPIED' ? 'Hay una cita asignada' : status === 'WITHIN_24H' ? 'Está dentro de las 24 horas' : 'La hora ha pasado'}`);
         return;
       }
 
@@ -491,10 +495,10 @@ function DoctorDashboard({ authHeader, doctorId, onLogout }) {
         reason: blockReason 
       };
       console.log(`📤 Enviando bloque ${index + 1}/${totalBlocks}:`, JSON.stringify(payload, null, 2));
-      console.log(`   URL: POST http://localhost:8080/api/appointments/doctor/${doctorId}/block`);
+      console.log(`   URL: POST ${API_URL}/api/appointments/doctor/${doctorId}/block`);
       console.log(`   Auth Header: ${authHeader ? 'Presente' : 'FALTA'}`);
 
-      fetch(`http://localhost:8080/api/appointments/doctor/${doctorId}/block`, {
+      fetch(`${API_URL}/api/appointments/doctor/${doctorId}/block`, {
         method: 'POST',
         headers: { 'Authorization': authHeader, 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -514,7 +518,7 @@ function DoctorDashboard({ authHeader, doctorId, onLogout }) {
             // Todos los bloques creados exitosamente
             setSelectedHoursToBlock([]);
             setBlockReason("");
-            alert(`✅ ${totalBlocks} bloqueo${totalBlocks > 1 ? 's' : ''} creado${totalBlocks > 1 ? 's' : ''} exitosamente`);
+            showAlert(`✅ ${totalBlocks} bloqueo${totalBlocks > 1 ? 's' : ''} creado${totalBlocks > 1 ? 's' : ''} exitosamente`);
             console.log('🔄 Refrescando datos...');
             fetchAppointments();
             fetchStats();
@@ -525,14 +529,14 @@ function DoctorDashboard({ authHeader, doctorId, onLogout }) {
           console.error(`   Status: ${res.status}`);
           console.error(`   Response: ${resText}`);
           // Mostrar error específico al usuario incluyendo el motivo
-          alert(`⚠️ Error al crear bloqueo (${index + 1}/${totalBlocks}):\n\nStatus: ${res.status}\n\n${resText}`);
+          showAlert(`⚠️ Error al crear bloqueo (${index + 1}/${totalBlocks}):\n\nStatus: ${res.status}\n\n${resText}`);
         }
       })
       .catch(err => {
         console.error('❌ Error de fetch en bloque', index + 1);
         console.error('   Error:', err);
         console.error('   Message:', err.message);
-        alert('❌ Error de conexión al crear bloqueo ' + (index + 1) + ':\n' + err.message);
+        showAlert('❌ Error de conexión al crear bloqueo ' + (index + 1) + ':\n' + err.message);
       });
     });
   };

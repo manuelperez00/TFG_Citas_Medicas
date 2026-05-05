@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
+const API_URL = process.env.REACT_APP_API_URL;
+
 const REASON_LABELS = {
   OFERTA_ENVIADA:                        'Oferta enviada',
   OFERTA_ACEPTADA:                       'Oferta aceptada',
@@ -58,9 +60,9 @@ function DoctorReassignmentStats({ authHeader, doctorId }) {
     if (!doctorId) return;
     setLoading(true);
     Promise.all([
-      fetch(`http://localhost:8080/api/reassignment/doctor/${doctorId}/stats`, { headers: { Authorization: authHeader } }).then(r => r.json()),
-      fetch(`http://localhost:8080/api/reassignment/doctor/${doctorId}/history`, { headers: { Authorization: authHeader } }).then(r => r.json()),
-      fetch(`http://localhost:8080/api/appointments/doctor/${doctorId}/rating`, { headers: { Authorization: authHeader } }).then(r => r.json()),
+      fetch(`${API_URL}/api/reassignment/doctor/${doctorId}/stats`, { headers: { Authorization: authHeader } }).then(r => r.json()),
+      fetch(`${API_URL}/api/reassignment/doctor/${doctorId}/history`, { headers: { Authorization: authHeader } }).then(r => r.json()),
+      fetch(`${API_URL}/api/appointments/doctor/${doctorId}/rating`, { headers: { Authorization: authHeader } }).then(r => r.json()),
     ])
       .then(([s, h, r]) => { setStats(s); setHistory(Array.isArray(h) ? h : []); setRating(r); })
       .catch(console.error)

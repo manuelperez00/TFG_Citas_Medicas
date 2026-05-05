@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import AppointmentDetailModal from '../../components/AppointmentDetailModal';
+import { useModal } from '../../components/AppModal';
 
 const API_URL = process.env.REACT_APP_API_URL;
 
 function MyAppointments({ authHeader, patientId }) {
+  const { showAlert, showConfirm } = useModal();
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('todas'); // 'todas', 'proximas', 'canceladas'
@@ -44,8 +46,8 @@ function MyAppointments({ authHeader, patientId }) {
     return diffInHours >= 12;
   };
 
-  const handleCancelAppointment = (appointmentId) => {
-    if (!window.confirm("¿Seguro que deseas cancelar esta cita?")) return;
+  const handleCancelAppointment = async (appointmentId) => {
+    if (!await showConfirm("¿Seguro que deseas cancelar esta cita?")) return;
 
     console.log(`🔄 Cancelando cita ${appointmentId}...`);
     fetch(`${API_URL}/api/appointments/${appointmentId}/cancel`, {
@@ -55,17 +57,17 @@ function MyAppointments({ authHeader, patientId }) {
       .then(async res => {
         console.log(`📦 Respuesta del servidor: ${res.status}`);
         if (res.ok) {
-          alert("✅ Cita cancelada correctamente.");
+          showAlert("✅ Cita cancelada correctamente.");
           console.log('🔄 Refrescando citas...');
           fetchAppointments();
         } else {
           const errorText = await res.text();
-          alert("❌ Error: " + errorText);
+          showAlert("❌ Error: " + errorText);
         }
       })
       .catch(err => {
         console.error("Error de red:", err);
-        alert("❌ Error de conexión");
+        showAlert("❌ Error de conexión");
       });
   };
 

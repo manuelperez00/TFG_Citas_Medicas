@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { ModalProvider, useModal } from './components/AppModal';
 
 // Componentes
 import Navbar from './components/Navbar';
@@ -18,7 +19,8 @@ import Login from './pages/Login';
 import LandingPage from './pages/LandingPage';
 import Register from './pages/Register';
 
-function App() {
+function AppContent() {
+  const { showAlert } = useModal();
   const [user, setUser] = useState(null);
   const [userRole, setUserRole] = useState(null); // 'PATIENT' o 'DOCTOR'
   const [patientId, setPatientId] = useState(null);
@@ -101,7 +103,7 @@ function App() {
     })
     .catch(err => {
       console.error('Login error:', err);
-      alert("Usuario o contraseña incorrectos");
+      showAlert("❌ Usuario o contraseña incorrectos");
     });
   };
 
@@ -185,4 +187,10 @@ function App() {
   return <div>Cargando...</div>;
 }
 
-export default App;
+export default function App() {
+  return (
+    <ModalProvider>
+      <AppContent />
+    </ModalProvider>
+  );
+}

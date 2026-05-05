@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import { useModal } from '../components/AppModal';
 
 function Login({ onLogin }) {
+  const { showAlert } = useModal();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -30,11 +32,11 @@ function Login({ onLogin }) {
         });
       } else {
         const errorData = await response.text();
-        alert('Error al iniciar sesión: ' + errorData);
+        showAlert('❌ Error al iniciar sesión: ' + errorData);
       }
     } catch (error) {
       console.error('Error de conexión:', error);
-      alert('Error de conexión con el servidor');
+      showAlert('❌ Error de conexión con el servidor');
     } finally {
       setIsLoading(false);
     }

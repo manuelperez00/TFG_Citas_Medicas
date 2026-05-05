@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useModal } from '../components/AppModal';
 
 const API_URL = process.env.REACT_APP_API_URL;
 
 function Register() {
   const navigate = useNavigate();
+  const { showAlert } = useModal();
   const [formData, setFormData] = useState({
     username: '', password: '', firstName: '', lastName: '', email: '', phone: '', birthDate: '', documentId: '', gender: 'UNDISCLOSED'
   });
@@ -23,15 +25,15 @@ const handleSubmit = async (e) => {
       });
       
       if (response.ok) {
-        alert("✅ ¡Registro exitoso! Ahora puedes iniciar sesión.");
+        await showAlert("✅ ¡Registro exitoso! Ahora puedes iniciar sesión.");
         navigate('/login');
       } else {
-        const errorText = await response.text(); 
-        alert("❌ Error del servidor: " + errorText);
+        const errorText = await response.text();
+        showAlert("❌ Error del servidor: " + errorText);
       }
     } catch (error) {
       console.error(error);
-      alert("Error de conexión con el servidor");
+      showAlert("❌ Error de conexión con el servidor");
     }
   };
 
