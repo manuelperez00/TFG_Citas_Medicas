@@ -32,9 +32,9 @@ public interface WaitingListRepository extends JpaRepository<WaitingList, Intege
         @Query("SELECT w FROM WaitingList w WHERE w.patient.id = :patientId AND w.status = 'EXPIRED'")
         List<WaitingList> findExpiredByPatientId(@Param("patientId") Integer patientId);
 
-        // Verificar si un paciente ya tiene una solicitud con fecha de solicitud "hoy"
-        @Query("SELECT COUNT(w) > 0 FROM WaitingList w WHERE w.patient.id = :patientId AND CAST(w.requestDate AS date) = :today")
-        boolean existsByPatientIdAndRequestDateToday(@Param("patientId") Integer patientId,
+        // Contar cuántas solicitudes tiene un paciente con fecha de solicitud "hoy"
+        @Query("SELECT COUNT(w) FROM WaitingList w WHERE w.patient.id = :patientId AND CAST(w.requestDate AS date) = :today")
+        long countByPatientIdAndRequestDateToday(@Param("patientId") Integer patientId,
                         @Param("today") LocalDate today);
 
         // Eliminar solicitudes futuras de la misma especialidad después de una fecha aceptada

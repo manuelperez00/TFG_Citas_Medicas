@@ -58,10 +58,11 @@ public class WaitingListController {
         LocalDateTime now = LocalDateTime.now();
         LocalDate today = now.toLocalDate();
 
-        // VALIDACIÓN PRINCIPAL: Solo UNA solicitud por día (sea cual sea la especialidad)
-        if (waitingListRepository.existsByPatientIdAndRequestDateToday(patientId, today)) {
+        // VALIDACIÓN PRINCIPAL: Máximo 3 solicitudes por día (sea cual sea la especialidad)
+        long todayCount = waitingListRepository.countByPatientIdAndRequestDateToday(patientId, today);
+        if (todayCount >= 3) {
             return ResponseEntity.badRequest().body(
-                    "Ya te has apuntado a la lista de espera hoy. Solo puedes apuntarte una vez por día. Vuelve mañana si quieres apuntarte a otra especialidad.");
+                    "Ya has alcanzado el límite de 3 solicitudes de lista de espera por día. Vuelve mañana si quieres apuntarte a otra especialidad.");
         }
 
         Specialty selectedSpecialty = Specialty.valueOf(specialty);
