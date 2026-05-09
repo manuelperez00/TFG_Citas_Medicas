@@ -14,8 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
@@ -39,7 +37,6 @@ class DoctorControllerIntegrationTest {
     @Autowired private ReassignmentLogRepository reassignmentLogRepository;
     @Autowired private PrescriptionRepository prescriptionRepository;
     @Autowired private PasswordEncoder passwordEncoder;
-    @MockBean  private JavaMailSender mailSender;
 
     private Doctor savedDoctor;
 
