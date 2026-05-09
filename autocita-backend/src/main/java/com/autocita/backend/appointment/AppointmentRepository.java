@@ -20,7 +20,8 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
                         @Param("start") LocalDateTime start,
                         @Param("end") LocalDateTime end);
 
-        // Encontrar TODOS los huecos libres de una especialidad (Para reasignación manual o consulta)
+        // Encontrar TODOS los huecos libres de una especialidad (Para reasignación
+        // manual o consulta)
         // Buscamos citas 'AVAILABLE' de médicos que tengan la especialidad 'X'
         @Query("SELECT a FROM Appointment a WHERE a.status = 'AVAILABLE' AND a.doctor.specialty = :specialty")
         List<Appointment> findAvailableBySpecialty(@Param("specialty") com.autocita.backend.doctor.Specialty specialty);
@@ -85,10 +86,10 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
                         @Param("doctorId") Integer doctorId,
                         @Param("startTime") LocalDateTime startTime);
 
-        @Query("SELECT a FROM Appointment a " +
+        @Query("SELECT a FROM Appointment a JOIN FETCH a.patient " +
                         "WHERE a.status = 'ASSIGNED' AND a.startTime <= :limit")
         List<Appointment> findPastAssignedAppointments(
-                        @org.springframework.data.repository.query.Param("limit") java.time.LocalDateTime limit);
+                        @Param("limit") LocalDateTime limit);
 
         long countByDoctorIdAndIsReassignedTrue(Integer doctorId);
 

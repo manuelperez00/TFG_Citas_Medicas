@@ -8,6 +8,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import jakarta.transaction.Transactional;
+
 @Component
 @EnableScheduling
 public class AppointmentScheduler {
@@ -20,6 +22,7 @@ public class AppointmentScheduler {
 
     // Se ejecuta cada minuto (60000 ms)
     // Las ofertas expiran después de 15 minutos sin respuesta
+    @Transactional
     @Scheduled(fixedRate = 60000)
     public void checkExpiredOffers() {
         LocalDateTime limit = LocalDateTime.now().minusMinutes(15);
@@ -46,6 +49,7 @@ public class AppointmentScheduler {
 
     // Marca como COMPLETED las citas ASSIGNED cuya hora de fin
     // (startTime + 60 min de duración) ya ha pasado.
+    @Transactional
     @Scheduled(fixedRate = 60000)
     public void completePastAppointments() {
         LocalDateTime limit = LocalDateTime.now().minusHours(1);
