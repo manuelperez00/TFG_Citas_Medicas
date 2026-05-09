@@ -197,32 +197,45 @@ function BookAppointment({ authHeader, patientId }) {
   };
 
   const getSlotStatus = (time) => {
-    const slotDateTime = `${selectedDate}T${time}`;
-    
-    // Verificar si el slot está en el pasado
+    const targetDateTime = `${selectedDate} ${time}`;
+
+    // Verificación de tiempo pasado
     if (new Date(`${selectedDate}T${time}`) < new Date()) return 'PAST';
-    
-    // Primero verificar si es una solicitud del paciente actual (MINE)
-    const myAppointment = patientAppointments.find(a => {
-      if (!a.startTime) return false;
-      // Comparar solo la fecha y hora sin considerar segundos ni zona horaria
-      return a.startTime.substring(0, 16) === slotDateTime.substring(0, 16);
-    });
-    if (myAppointment && ['ASSIGNED', 'REASSIGNED', 'OFFERED'].includes(myAppointment.status)) {
+
+    const normalizeForComparison = (dateStr) => {
+      if (!dateStr) return "";
+      return dateStr.replace('T', ' ').substring(0, 16);
+    };
+
+    const currentSlotNormalized = normalizeForComparison(targetDateTime);
+
+    const activeOccupiedStatuses = ['BLOCKED', 'OFFERED', 'ASSIGNED', 'REASSIGNED', 'COMPLETED'];
+    const doctorAppsAtTime = Array.isArray(doctorAppointments)
+      ? doctorAppointments.filter(a => normalizeForComparison(a.startTime) === currentSlotNormalized)
+      : [];
+    const doctorApp = doctorAppsAtTime.find(a => activeOccupiedStatuses.includes(a.status))
+      ?? doctorAppsAtTime[0] ?? null;
+
+    const activeMineStatuses = ['ASSIGNED', 'REASSIGNED', 'OFFERED'];
+    const myAppsAtTime = Array.isArray(patientAppointments)
+      ? patientAppointments.filter(a => normalizeForComparison(a.startTime) === currentSlotNormalized)
+      : [];
+    const myApp = myAppsAtTime.find(a => activeMineStatuses.includes(a.status))
+      ?? myAppsAtTime[0] ?? null;
+
+    // 1. Bloqueos manuales
+    if (doctorApp?.status === 'BLOCKED') return 'BLOCKED';
+
+    // 2. Si la cita es del paciente logueado (Prioridad sobre Ocupado)
+    if (myApp && ['ASSIGNED', 'REASSIGNED', 'OFFERED'].includes(myApp.status)) {
       return 'MINE';
     }
-    
-    // Luego verificar otras citas del doctor
-    const app = doctorAppointments.find(a => {
-      if (!a.startTime) return false;
-      // Comparar solo la fecha y hora sin considerar segundos ni zona horaria
-      return a.startTime.substring(0, 16) === slotDateTime.substring(0, 16);
-    });
-    
-    if (!app) return 'FREE';
-    if (app.status === 'BLOCKED') return 'BLOCKED';
-    // Considerar OFFERED, ASSIGNED, REASSIGNED y COMPLETED como ocupadas
-    if (['OFFERED', 'ASSIGNED', 'REASSIGNED', 'COMPLETED'].includes(app.status)) return 'OCCUPIED';
+
+    // 3. Si hay una cita de otra persona (Estado ASSIGNED como en tu DB)
+    if (doctorApp && ['OFFERED', 'ASSIGNED', 'REASSIGNED', 'COMPLETED'].includes(doctorApp.status)) {
+      return 'OCCUPIED';
+    }
+
     return 'FREE';
   };
 
