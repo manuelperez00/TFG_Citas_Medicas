@@ -133,7 +133,14 @@ function BookAppointment({ authHeader, patientId }) {
       headers: { 'Authorization': authHeader }
     })
     .then(res => res.json())
-    .then(data => setDoctorAppointments(data));
+    .then(data => {
+      console.log('📊 Citas del doctor cargadas:', data);
+      setDoctorAppointments(Array.isArray(data) ? data : []);
+    })
+    .catch(err => {
+      console.error('❌ Error cargando citas del doctor:', err);
+      setDoctorAppointments([]);
+    });
   };
 
   const handleSelectDoctor = (doc) => {
@@ -147,7 +154,7 @@ function BookAppointment({ authHeader, patientId }) {
 
     const pollInterval = setInterval(() => {
       fetchDoctorAppointments(selectedDoctor.id);
-    }, 5000);
+    }, 2000);
 
     return () => clearInterval(pollInterval);
   }, [selectedDoctor?.id, authHeader]);
@@ -196,16 +203,26 @@ function BookAppointment({ authHeader, patientId }) {
     if (new Date(`${selectedDate}T${time}`) < new Date()) return 'PAST';
     
     // Primero verificar si es una solicitud del paciente actual (MINE)
-    const myAppointment = patientAppointments.find(a => a.startTime?.startsWith(slotDateTime));
+    const myAppointment = patientAppointments.find(a => {
+      if (!a.startTime) return false;
+      // Comparar solo la fecha y hora sin considerar segundos ni zona horaria
+      return a.startTime.substring(0, 16) === slotDateTime.substring(0, 16);
+    });
     if (myAppointment && ['ASSIGNED', 'REASSIGNED', 'OFFERED'].includes(myAppointment.status)) {
       return 'MINE';
     }
     
     // Luego verificar otras citas del doctor
-    const app = doctorAppointments.find(a => a.startTime.startsWith(slotDateTime));
+    const app = doctorAppointments.find(a => {
+      if (!a.startTime) return false;
+      // Comparar solo la fecha y hora sin considerar segundos ni zona horaria
+      return a.startTime.substring(0, 16) === slotDateTime.substring(0, 16);
+    });
+    
     if (!app) return 'FREE';
     if (app.status === 'BLOCKED') return 'BLOCKED';
-    if (['ASSIGNED', 'REASSIGNED', 'COMPLETED'].includes(app.status)) return 'OCCUPIED';
+    // Considerar OFFERED, ASSIGNED, REASSIGNED y COMPLETED como ocupadas
+    if (['OFFERED', 'ASSIGNED', 'REASSIGNED', 'COMPLETED'].includes(app.status)) return 'OCCUPIED';
     return 'FREE';
   };
 
