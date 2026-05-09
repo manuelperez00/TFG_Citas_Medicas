@@ -142,6 +142,16 @@ function BookAppointment({ authHeader, patientId }) {
     fetchDoctorAppointments(doc.id);
   };
 
+  useEffect(() => {
+    if (!selectedDoctor?.id) return;
+
+    const pollInterval = setInterval(() => {
+      fetchDoctorAppointments(selectedDoctor.id);
+    }, 5000);
+
+    return () => clearInterval(pollInterval);
+  }, [selectedDoctor?.id, authHeader]);
+
   const executeBooking = () => {
     // Validar antes de enviar
     if (!canBookSlot(selectedTime)) {
