@@ -50,6 +50,7 @@ function BookAppointment({ authHeader, patientId }) {
   const [doctorAppointments, setDoctorAppointments] = useState([]);
   const [patientAppointments, setPatientAppointments] = useState([]);
   const [showModal, setShowModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const morningSlots = ["09:00", "10:00", "11:00", "12:00", "13:00"];
   const afternoonSlots = ["16:00", "17:00", "18:00", "19:00", "20:00"];
@@ -160,11 +161,15 @@ function BookAppointment({ authHeader, patientId }) {
   }, [selectedDoctor?.id, authHeader]);
 
   const executeBooking = () => {
+    if (isSubmitting) return;
+
     // Validar antes de enviar
     if (!canBookSlot(selectedTime)) {
       showAlert("❌ Esta cita viola las limitaciones diarias:\n\n• Máximo 1 cita por especialidad por día\n• Máximo 2 citas de diferentes especialidades por día\n• Evita overlaps de horarios\n\nSelecciona otro día u hora.");
       return;
     }
+
+    setIsSubmitting(true);
 
     const request = {
       doctorId: selectedDoctor.id,
@@ -182,7 +187,7 @@ function BookAppointment({ authHeader, patientId }) {
       setShowModal(false);
       setSelectedTime(null);
       showAlert("✅ Solicitud enviada con éxito");
-      
+
       // Recargar citas del paciente después de confirmar
       fetch(`${API_URL}/api/appointments/patient/${patientId}`, {
         headers: { 'Authorization': authHeader }
@@ -190,10 +195,11 @@ function BookAppointment({ authHeader, patientId }) {
       .then(res => res.json())
       .then(data => setPatientAppointments(Array.isArray(data) ? data : []))
       .catch(err => console.warn('Error reloading appointments:', err));
-      
+
       fetchDoctorAppointments(selectedDoctor.id);
     })
-    .catch(err => showAlert("❌ Error: " + err.message));
+    .catch(err => showAlert("❌ Error: " + err.message))
+    .finally(() => setIsSubmitting(false));
   };
 
   const getSlotStatus = (time) => {
@@ -308,8 +314,14 @@ function BookAppointment({ authHeader, patientId }) {
               </p>
             </div>
             <div style={{ display: 'flex', gap: '12px', marginTop: '25px' }}>
-              <button onClick={() => setShowModal(false)} style={btnCancelStyle}>Cancelar</button>
-              <button onClick={executeBooking} style={btnConfirmStyle}>Confirmar solicitud</button>
+              <button onClick={() => setShowModal(false)} style={btnCancelStyle} disabled={isSubmitting}>Cancelar</button>
+              <button
+                onClick={executeBooking}
+                style={{ ...btnConfirmStyle, opacity: isSubmitting ? 0.6 : 1, cursor: isSubmitting ? 'not-allowed' : 'pointer' }}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? 'Enviando...' : 'Confirmar solicitud'}
+              </button>
             </div>
           </div>
         </div>
