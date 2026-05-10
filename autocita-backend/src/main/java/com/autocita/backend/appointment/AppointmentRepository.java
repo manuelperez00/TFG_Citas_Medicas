@@ -46,7 +46,13 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
         boolean existsByDoctorIdAndStartTimeAndStatus(Integer doctorId, java.time.LocalDateTime startTime,
                         AppointmentStatus status);
 
-        boolean existsByPatientIdAndStartTime(Integer patientId, java.time.LocalDateTime startTime);
+        @Query("SELECT CASE WHEN COUNT(a) > 0 THEN true ELSE false END FROM Appointment a " +
+                        "WHERE a.patient.id = :patientId " +
+                        "AND a.startTime = :startTime " +
+                        "AND a.status IN ('ASSIGNED', 'OFFERED', 'REASSIGNED')")
+        boolean existsActiveByPatientIdAndStartTime(
+                        @Param("patientId") Integer patientId,
+                        @Param("startTime") java.time.LocalDateTime startTime);
 
         // Verificar si un paciente ya tiene una cita de la misma
         // especialidad en un día específico

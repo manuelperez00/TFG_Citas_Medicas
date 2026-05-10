@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -85,7 +86,7 @@ public class AppointmentController {
     }
 
     @PostMapping
-    @Transactional
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public ResponseEntity<?> createAppointment(@Valid @RequestBody AppointmentRequest request) {
 
         var doctorOpt = doctorRepository.findById(request.getDoctorId());
@@ -141,8 +142,8 @@ public class AppointmentController {
             return processBooking(existingApp, request, AppointmentStatus.ASSIGNED);
         }
 
-        // 2. VALIDACIÓN PARA EL PACIENTE (No puede tener dos citas a la misma hora)
-        if (appointmentRepository.existsByPatientIdAndStartTime(request.getPatientId(), request.getStartTime())) {
+        // 2. VALIDACIÓN PARA EL PACIENTE (No puede tener dos citas activas a la misma hora)
+        if (appointmentRepository.existsActiveByPatientIdAndStartTime(request.getPatientId(), request.getStartTime())) {
             return ResponseEntity.badRequest().body("Ya tienes una cita reservada a esa hora.");
         }
 

@@ -109,7 +109,7 @@ public class ReassignmentService {
                 .filter(c -> !excluidos.contains(c.getPatient().getId()))
 
                 // Filtro 3: No tener cita exactamente a la misma hora
-                .filter(c -> !appointmentRepository.existsByPatientIdAndStartTime(c.getPatient().getId(),
+                .filter(c -> !appointmentRepository.existsActiveByPatientIdAndStartTime(c.getPatient().getId(),
                         hueco.getStartTime()))
 
                 // Filtro 4: Validar citas el mismo día
@@ -123,9 +123,9 @@ public class ReassignmentService {
                 // Filtro 6: Filtro de turno según tipo
                 .filter(c -> filtrarPorTurno(c.getTimePreference(), hueco.getStartTime(), tipoFiltroTurno))
 
-                // Filtro 7: Fecha preferida EXACTA o POSTERIOR (pero solo esta fecha
-                // específica)
-                .filter(c -> c.getPreferredDate().equals(fechaBusqueda) || c.getPreferredDate().isBefore(fechaBusqueda))
+                // Filtro 7: Solo candidatos con fecha preferida EXACTAMENTE igual a la fecha buscada
+                // (mismo día del hueco o día siguiente, nunca días anteriores)
+                .filter(c -> c.getPreferredDate().equals(fechaBusqueda))
 
                 // ORDENACIÓN DE PRIORIDAD
                 .sorted(Comparator
