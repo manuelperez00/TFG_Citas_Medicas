@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @RestController
@@ -94,6 +95,17 @@ public class WaitingListController {
         if (selectedDate.isBefore(today)) {
             return ResponseEntity.badRequest().body(
                     "No puedes apuntarte para una fecha en el pasado.");
+        }
+
+        // No puedes tener dos solicitudes activas cuyas fechas preferidas
+        // se solapan en la ventana de búsqueda del sistema (día del hueco + día siguiente)
+        List<WaitingList> entradasActivas = waitingListRepository.findActiveByPatientId(patientId);
+        for (WaitingList activa : entradasActivas) {
+            long diasEntre = Math.abs(ChronoUnit.DAYS.between(activa.getPreferredDate(), selectedDate));
+            if (diasEntre <= 1) {
+                return ResponseEntity.badRequest().body(
+                        "Ya tienes una solicitud activa en ese rango de fechas. No puedes añadir otra en días consecutivos.");
+            }
         }
 
         // Validaciones de horario
