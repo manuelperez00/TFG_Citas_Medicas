@@ -52,7 +52,7 @@ function DoctorProfile({ doctorData, onSave }) {
     const createdAt = formatDate(doctorData.createdAt || doctorData.created_at);
     const updatedAt = localUpdatedAt || formatDate(doctorData.updatedAt || doctorData.updated_at);
 
-    const workShiftLabel = workShift === 'MORNING' ? 'Mañana' : workShift === 'AFTERNOON' ? 'Tarde' : workShift === 'ANY' ? 'Ambos' : workShift;
+    const workShiftLabel = workShift === 'MORNING' ? 'Mañana' : workShift === 'AFTERNOON' ? 'Tarde' : workShift === 'ANY' ? 'Mañana y Tarde' : workShift;
 
     const inputStyle = {
         width: '100%',

@@ -190,7 +190,7 @@ function DoctorHome({ authHeader, doctorId }) {
             Bienvenido a tu panel de control. Aquí puedes gestionar tus citas, disponibilidad y más.
           </p>
           <p style={{ fontSize: '0.95rem', color: '#64748b', fontStyle: 'italic' }}>
-            📋 {SPECIALTY_ES[doctorData?.specialty] || doctorData?.specialty || 'Especialista'} | 🕐 {doctorData?.workShift === 'MORNING' ? 'Turno Mañana' : doctorData?.workShift === 'AFTERNOON' ? 'Turno Tarde' : 'Ambos Turnos'}
+            📋 {SPECIALTY_ES[doctorData?.specialty] || doctorData?.specialty || 'Especialista'} | {doctorData?.workShift === 'MORNING' ? ' Mañana' : doctorData?.workShift === 'AFTERNOON' ? 'Tarde' : ' Mañana y Tarde'} 
           </p>
         </div>
 

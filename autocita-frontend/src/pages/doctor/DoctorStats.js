@@ -1,6 +1,13 @@
 import React from 'react';
 
 function DoctorStats({ stats, workShift }) {
+  const getWorkShiftLabel = (shift) => {
+    if (shift === 'MORNING') return 'Mañana';
+    if (shift === 'AFTERNOON') return 'Tarde';
+    if (shift === 'ANY') return 'Mañana y Tarde';
+    return shift;
+  };
+
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px', marginBottom: '40px' }}>
       <div style={{ backgroundColor: 'white', padding: '24px', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
@@ -20,7 +27,7 @@ function DoctorStats({ stats, workShift }) {
       <div style={{ backgroundColor: 'white', padding: '24px', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
         <div style={{ width: '48px', height: '48px', borderRadius: '12px', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '1.2rem', backgroundColor: '#e0f2fe', color: '#0284c7' }}>☀️</div>
         <div>
-          <h4 style={{ margin: 0, fontSize: '1.5rem', fontWeight: '700' }}>{workShift}</h4>
+          <h4 style={{ margin: 0, fontSize: '1.5rem', fontWeight: '700' }}>{getWorkShiftLabel(workShift)}</h4>
           <p style={{ margin: 0, color: '#64748b', fontSize: '0.9rem' }}>Turno</p>
         </div>
       </div>
