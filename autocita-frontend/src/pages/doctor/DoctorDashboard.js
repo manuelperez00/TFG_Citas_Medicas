@@ -849,42 +849,81 @@ function DoctorDashboard({ authHeader, doctorId, onLogout }) {
               </div>
 
               {/* TABLA DE BLOQUEOS EXISTENTES */}
-              <div style={styles.tableWrapper}>
-                <div style={{ ...styles.sectionHeader, marginBottom: '16px', paddingBottom: '16px', borderBottom: '2px solid #f1f5f9' }}>
-                  <div>
-                    <h4 style={{ margin: 0, color: '#1e293b' }}>🔒 Bloques activos</h4>
-                    <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#64748b' }}>Total de horarios bloqueados: <strong>{blockedAppointments.length}</strong></p>
-                  </div>
-                  <button onClick={() => { console.log('Actualizando bloques...'); fetchBlocked(); }} style={{ padding: '8px 16px', backgroundColor: '#f1f5f9', color: '#475569', border: '1px solid #e2e8f0', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '12px' }}>🔄 Refrescar ahora</button>
-                </div>
-                <table style={styles.table}>
-                  <thead>
-                    <tr>
-                      <th style={styles.th}>FECHA/HORA</th>
-                      <th style={styles.th}>MOTIVO</th>
-                      <th style={styles.th}>ACCIONES</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {blockedAppointments.length > 0 ? blockedAppointments.map(app => (
-                      <tr key={app.id} style={styles.tr}>
-                        <td style={styles.td}>
-                          <div style={styles.timeText}>{new Date(app.startTime).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div>
-                          <div style={styles.dateText}>{new Date(app.startTime).toLocaleDateString()}</div>
-                        </td>
-                        <td style={styles.td}>
-                          {app.notes || "Sin motivo"}
-                        </td>
-                        <td style={styles.td}>
-                          <button style={styles.btnActionReject} onClick={() => handleCancel(app.id)}>Eliminar bloqueo</button>
-                        </td>
-                      </tr>
-                    )) : (
-                      <tr><td colSpan="3" style={{textAlign: 'center', padding: '20px', color: '#94a3b8'}}>No hay bloqueos activos.</td></tr>
+              {(() => {
+                const nowTs = new Date();
+                const futureBlocks = blockedAppointments.filter(app => new Date(app.startTime) >= nowTs);
+                const pastBlocks = blockedAppointments.filter(app => new Date(app.startTime) < nowTs);
+                return (
+                  <>
+                    {/* Bloques futuros */}
+                    <div style={styles.tableWrapper}>
+                      <div style={{ ...styles.sectionHeader, marginBottom: '16px', paddingBottom: '16px', borderBottom: '2px solid #f1f5f9' }}>
+                        <div>
+                          <h4 style={{ margin: 0, color: '#1e293b' }}>🔒 Bloques activos</h4>
+                          <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#64748b' }}>Total de horarios bloqueados: <strong>{futureBlocks.length}</strong></p>
+                        </div>
+                        <button onClick={() => { console.log('Actualizando bloques...'); fetchBlocked(); }} style={{ padding: '8px 16px', backgroundColor: '#f1f5f9', color: '#475569', border: '1px solid #e2e8f0', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '12px' }}>🔄 Refrescar ahora</button>
+                      </div>
+                      <table style={styles.table}>
+                        <thead>
+                          <tr>
+                            <th style={styles.th}>FECHA/HORA</th>
+                            <th style={styles.th}>MOTIVO</th>
+                            <th style={styles.th}>ACCIONES</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {futureBlocks.length > 0 ? futureBlocks.map(app => (
+                            <tr key={app.id} style={styles.tr}>
+                              <td style={styles.td}>
+                                <div style={styles.timeText}>{new Date(app.startTime).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div>
+                                <div style={styles.dateText}>{new Date(app.startTime).toLocaleDateString()}</div>
+                              </td>
+                              <td style={styles.td}>{app.notes || "Sin motivo"}</td>
+                              <td style={styles.td}>
+                                <button style={styles.btnActionReject} onClick={() => handleCancel(app.id)}>Eliminar bloqueo</button>
+                              </td>
+                            </tr>
+                          )) : (
+                            <tr><td colSpan="3" style={{textAlign: 'center', padding: '20px', color: '#94a3b8'}}>No hay bloqueos futuros activos.</td></tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Bloques pasados */}
+                    {pastBlocks.length > 0 && (
+                      <div style={{ ...styles.tableWrapper, marginTop: '24px' }}>
+                        <div style={{ ...styles.sectionHeader, marginBottom: '16px', paddingBottom: '16px', borderBottom: '2px solid #f1f5f9' }}>
+                          <div>
+                            <h4 style={{ margin: 0, color: '#94a3b8' }}>📋 Bloqueos pasados</h4>
+                            <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#94a3b8' }}>Historial de huecos bloqueados: <strong>{pastBlocks.length}</strong></p>
+                          </div>
+                        </div>
+                        <table style={styles.table}>
+                          <thead>
+                            <tr>
+                              <th style={styles.th}>FECHA/HORA</th>
+                              <th style={styles.th}>MOTIVO</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {pastBlocks.map(app => (
+                              <tr key={app.id} style={{ ...styles.tr, opacity: 0.6 }}>
+                                <td style={styles.td}>
+                                  <div style={styles.timeText}>{new Date(app.startTime).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div>
+                                  <div style={styles.dateText}>{new Date(app.startTime).toLocaleDateString()}</div>
+                                </td>
+                                <td style={styles.td}>{app.notes || "Sin motivo"}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
                     )}
-                  </tbody>
-                </table>
-              </div>
+                  </>
+                );
+              })()}
             </div>
           </div>
         )}
