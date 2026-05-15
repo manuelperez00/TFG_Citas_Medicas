@@ -2,11 +2,12 @@ import React from 'react';
 
 const getStatusColor = (status) => {
   switch(status) {
-    case 'CONFIRMED': case 'ASSIGNED': return '#10b981';
-    case 'OFFERED': return '#f59e0b';
-    case 'CANCELLED': case 'REJECTED': return '#ef4444';
-    case 'BLOCKED': return '#eab308'; // Amarillo para bloqueos
-    case 'AVAILABLE': return '#22c55e';
+    case 'AVAILABLE':  return '#22c55e'; // verde   – libre
+    case 'OFFERED':    return '#f59e0b'; // ámbar   – pendiente de confirmar
+    case 'ASSIGNED':   return '#3b82f6'; // azul    – paciente asignado
+    case 'CONFIRMED':  return '#7c3aed'; // morado  – cita confirmada
+    case 'BLOCKED':    return '#ea580c'; // naranja – horario bloqueado
+    case 'CANCELLED': case 'REJECTED': return '#ef4444'; // rojo
     default: return '#94a3b8';
   }
 };
