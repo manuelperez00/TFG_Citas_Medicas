@@ -215,20 +215,20 @@ function DoctorDashboard({ authHeader, doctorId, onLogout }) {
       return 'WITHIN_24H';
     }
 
-    // Buscar si hay cita asignada/ofrecida en esa hora
+    // Buscar si hay cita bloqueada u ocupada en esa hora
+    // Se busca por estado específico para evitar que una cita REJECTED oculte una ASSIGNED
     const slotDateTime = `${date}T${hour}`;
-    const existingApp = appointments.find(a => a.startTime.startsWith(slotDateTime));
-    
-    if (existingApp) {
-      // Si está bloqueada (por el doctor), devolveremos estado específico BLOCKED_SLOT
-      if (existingApp.status === 'BLOCKED') {
-        return 'BLOCKED_SLOT';
-      }
-      // Si está asignada, ofrecida o reasignada, está OCUPADA
-      if (['ASSIGNED', 'REASSIGNED', 'OFFERED'].includes(existingApp.status)) {
-        return 'OCCUPIED';
-      }
-    }
+
+    const blockedSlot = appointments.find(a =>
+      a.startTime.startsWith(slotDateTime) && a.status === 'BLOCKED'
+    );
+    if (blockedSlot) return 'BLOCKED_SLOT';
+
+    const occupiedSlot = appointments.find(a =>
+      a.startTime.startsWith(slotDateTime) &&
+      ['ASSIGNED', 'REASSIGNED', 'OFFERED'].includes(a.status)
+    );
+    if (occupiedSlot) return 'OCCUPIED';
 
     // Si pasó todas las restricciones, está disponible
     return 'AVAILABLE';
