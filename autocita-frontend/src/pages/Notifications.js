@@ -68,7 +68,7 @@ function Notifications({ authHeader, patientId, onRefresh }) {
         if (response.ok) {
           console.log(`✅ Respuesta procesada exitosamente`);
           setOffers(prev => prev.filter(o => o.id !== appointmentId));
-          showAlert(accepted ? "✅ ¡Cita confirmada!" : "❌ Oferta rechazada - Se ofrecerá a otro paciente");
+          showAlert(accepted ? "✅ ¡Cita confirmada!" : "✅ Oferta rechazada correctamente");
           if (onRefresh) onRefresh();
         } else {
           const errorText = await response.text();
