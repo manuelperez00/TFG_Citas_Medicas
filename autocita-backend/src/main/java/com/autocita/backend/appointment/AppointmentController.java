@@ -116,6 +116,12 @@ public class AppointmentController {
             return ResponseEntity.badRequest().body("El médico ha bloqueado ese horario.");
         }
 
+        // si hay cualquier cita ocupada para ese médico+hora, rechazar directamente
+        // (previene doble reserva aunque haya también un registro AVAILABLE en BD)
+        if (appointmentRepository.existsOccupiedByDoctorIdAndStartTime(request.getDoctorId(), request.getStartTime())) {
+            return ResponseEntity.badRequest().body("El médico ya tiene una cita en esa hora.");
+        }
+
         // 1. BUSCAR SI YA EXISTE UN REGISTRO PARA ESE MÉDICO Y ESA HORA
         var existingAppOpt = appointmentRepository.findByDoctorIdAndStartTimeActiveOnly(request.getDoctorId(),
                 request.getStartTime());

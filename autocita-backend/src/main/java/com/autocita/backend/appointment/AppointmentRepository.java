@@ -87,8 +87,21 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
                         "WHERE a.doctor.id = :doctorId " +
                         "AND a.startTime = :startTime " +
                         "AND a.status NOT IN ('REJECTED') " +
-                        "ORDER BY a.id DESC LIMIT 1")
+                        "ORDER BY CASE a.status " +
+                        "  WHEN 'ASSIGNED' THEN 1 WHEN 'OFFERED' THEN 2 " +
+                        "  WHEN 'REASSIGNED' THEN 3 WHEN 'COMPLETED' THEN 4 " +
+                        "  WHEN 'BLOCKED' THEN 5 ELSE 6 END ASC " +
+                        "LIMIT 1")
         Optional<Appointment> findByDoctorIdAndStartTimeActiveOnly(
+                        @Param("doctorId") Integer doctorId,
+                        @Param("startTime") LocalDateTime startTime);
+
+        // Verifica si existe cita ocupada (no disponible) para un médico+hora
+        @Query("SELECT CASE WHEN COUNT(a) > 0 THEN true ELSE false END FROM Appointment a " +
+                        "WHERE a.doctor.id = :doctorId " +
+                        "AND a.startTime = :startTime " +
+                        "AND a.status IN ('ASSIGNED', 'OFFERED', 'REASSIGNED', 'COMPLETED', 'BLOCKED')")
+        boolean existsOccupiedByDoctorIdAndStartTime(
                         @Param("doctorId") Integer doctorId,
                         @Param("startTime") LocalDateTime startTime);
 

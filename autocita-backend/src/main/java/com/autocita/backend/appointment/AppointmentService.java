@@ -48,17 +48,30 @@ public class AppointmentService {
                 appointment.setStatus(AppointmentStatus.REJECTED);
                 appointmentRepository.save(appointment);
 
-                // 2. Crear un nuevo slot AVAILABLE para reasignación a otros candidatos
-                Appointment newSlot = new Appointment();
-                newSlot.setDoctor(appointment.getDoctor());
-                newSlot.setStartTime(appointment.getStartTime());
-                newSlot.setStatus(AppointmentStatus.AVAILABLE);
-                newSlot.setPatient(null);
-                appointmentRepository.save(newSlot);
+                // 2. Crear slot AVAILABLE para reasignación solo si el slot no está ya ocupado
+                //    por otro paciente (evita crear AVAILABLE cuando hay otro ASSIGNED en el mismo slot)
+                if (appointmentRepository.existsOccupiedByDoctorIdAndStartTime(
+                                appointment.getDoctor().getId(), appointment.getStartTime())) {
+                        // Otro paciente tiene ese slot ocupado, no hay nada que reasignar
+                        return;
+                }
 
-                // 3. Procesar reasignación sobre el nuevo slot, no la cita cancelada del
-                // usuario
-                reassignmentService.procesarReasignacion(newSlot, oldPatient);
+                Appointment slotParaReasignar;
+                var existingAvailable = appointmentRepository.findByDoctorIdAndStartTimeActiveOnly(
+                                appointment.getDoctor().getId(), appointment.getStartTime());
+                if (existingAvailable.isPresent() && existingAvailable.get().getStatus() == AppointmentStatus.AVAILABLE) {
+                        slotParaReasignar = existingAvailable.get();
+                } else {
+                        slotParaReasignar = new Appointment();
+                        slotParaReasignar.setDoctor(appointment.getDoctor());
+                        slotParaReasignar.setStartTime(appointment.getStartTime());
+                        slotParaReasignar.setStatus(AppointmentStatus.AVAILABLE);
+                        slotParaReasignar.setPatient(null);
+                        appointmentRepository.save(slotParaReasignar);
+                }
+
+                // 3. Procesar reasignación sobre el slot libre, no la cita cancelada del usuario
+                reassignmentService.procesarReasignacion(slotParaReasignar, oldPatient);
         }
 
         // NUEVO
@@ -208,14 +221,28 @@ public class AppointmentService {
                                                         ") que estaba buscando en la lista de espera");
                         appointmentRepository.save(futureAppointment);
 
-                        // 2. Crear nuevo slot AVAILABLE para que otros pacientes en lista de espera
-                        // puedan aceptarlo
-                        Appointment newSlot = new Appointment();
-                        newSlot.setDoctor(futureAppointment.getDoctor());
-                        newSlot.setStartTime(futureAppointment.getStartTime());
-                        newSlot.setStatus(AppointmentStatus.AVAILABLE);
-                        newSlot.setPatient(null);
-                        appointmentRepository.save(newSlot);
+                        // 2. Crear nuevo slot AVAILABLE solo si el slot no está ya ocupado por otro paciente
+                        if (appointmentRepository.existsOccupiedByDoctorIdAndStartTime(
+                                        futureAppointment.getDoctor().getId(), futureAppointment.getStartTime())) {
+                                // Otro paciente ocupa ese slot, no crear AVAILABLE duplicado
+                                reassignmentService.guardarLog(futureAppointment, patient, null,
+                                                "LIBERADA_POR_ACEPTACION_LISTA_ESPERA_ANTERIOR");
+                                continue;
+                        }
+
+                        Appointment slotParaReasignar;
+                        var existingAvailable = appointmentRepository.findByDoctorIdAndStartTimeActiveOnly(
+                                        futureAppointment.getDoctor().getId(), futureAppointment.getStartTime());
+                        if (existingAvailable.isPresent() && existingAvailable.get().getStatus() == AppointmentStatus.AVAILABLE) {
+                                slotParaReasignar = existingAvailable.get();
+                        } else {
+                                slotParaReasignar = new Appointment();
+                                slotParaReasignar.setDoctor(futureAppointment.getDoctor());
+                                slotParaReasignar.setStartTime(futureAppointment.getStartTime());
+                                slotParaReasignar.setStatus(AppointmentStatus.AVAILABLE);
+                                slotParaReasignar.setPatient(null);
+                                appointmentRepository.save(slotParaReasignar);
+                        }
 
                         reassignmentService.guardarLog(
                                         futureAppointment,
@@ -223,10 +250,10 @@ public class AppointmentService {
                                         null,
                                         "LIBERADA_POR_ACEPTACION_LISTA_ESPERA_ANTERIOR");
 
-                        // 3. Relanzar algoritmo de reasignación sobre el nuevo slot
+                        // 3. Relanzar algoritmo de reasignación sobre el slot libre
                         System.out.println("🔄 RELANZANDO ALGORITMO DE REASIGNACIÓN para hueco del " +
                                         futureAppointment.getStartTime());
-                        reassignmentService.procesarReasignacion(newSlot, patient);
+                        reassignmentService.procesarReasignacion(slotParaReasignar, patient);
                 }
         }
 
