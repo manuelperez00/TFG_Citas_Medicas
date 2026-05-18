@@ -95,6 +95,16 @@ public class EmailService {
         String acceptUrl = backendUrl + "/api/appointments/respond-via-email?token=" + acceptToken + "&accepted=true";
         String rejectUrl = backendUrl + "/api/appointments/respond-via-email?token=" + rejectToken + "&accepted=false";
 
+        String expiryNote;
+        if (appointment.getOfferedAt() != null) {
+            java.time.LocalDateTime exp = appointment.getOfferedAt().plusMinutes(15);
+            expiryNote = String.format(
+                "⏰ IMPORTANTE: Tienes 15 minutos para confirmar esta cita (hasta las %02d:%02d).",
+                exp.getHour(), exp.getMinute());
+        } else {
+            expiryNote = "⏰ IMPORTANTE: Tienes 15 minutos para confirmar esta cita.";
+        }
+
         return String.format(
                 "Hola %s,\n\n" +
                         "¡Buenas noticias! Hemos encontrado una cita disponible que se ajusta a tus preferencias.\n\n" +
@@ -103,12 +113,12 @@ public class EmailService {
                         "  • Médico: Dr./Dra. %s\n" +
                         "  • Fecha: %s\n" +
                         "  • Hora: %s\n\n" +
-                        "⏰ IMPORTANTE: Tienes 15 minutos para confirmar esta cita.\n\n" +
+                        "%s\n\n" +
                         "RESPONDE DIRECTAMENTE DESDE ESTE EMAIL:\n" +
                         "  ✅ ACEPTAR:  %s\n" +
                         "  ❌ RECHAZAR: %s\n\n" +
                         "Si no puedes hacer clic en los enlaces, ve a tu plataforma AutoCita y responde desde tu panel de notificaciones.\n\n" +
                         "Saludos cordiales,\nEquipo AutoCita",
-                patientName, specialty, doctorFullName, date, time, acceptUrl, rejectUrl);
+                patientName, specialty, doctorFullName, date, time, expiryNote, acceptUrl, rejectUrl);
     }
 }
