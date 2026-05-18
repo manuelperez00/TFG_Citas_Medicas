@@ -395,6 +395,19 @@ public class AppointmentController {
         return ResponseEntity.ok(result);
     }
 
+    @PutMapping("/{id}/unblock")
+    public ResponseEntity<?> unblockAppointment(@PathVariable Integer id) {
+        return appointmentRepository.findById(id).map(app -> {
+            if (app.getStatus() != AppointmentStatus.BLOCKED) {
+                return ResponseEntity.badRequest().body("La cita no está bloqueada");
+            }
+            app.setStatus(AppointmentStatus.AVAILABLE);
+            app.setNotes(null);
+            appointmentRepository.save(app);
+            return ResponseEntity.ok().build();
+        }).orElse(ResponseEntity.notFound().build());
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteAppointment(@PathVariable Integer id) {
         if (appointmentRepository.existsById(id)) {
