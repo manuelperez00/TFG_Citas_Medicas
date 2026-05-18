@@ -98,12 +98,27 @@ function Agenda({ authHeader, doctorId }) {
   };
 
   const now = new Date();
-  
+
+  // Prioridad de estados para deduplicar: menor número = más prioritario
+  const STATUS_PRIORITY = { ASSIGNED: 1, OFFERED: 2, REASSIGNED: 3, COMPLETED: 4, AVAILABLE: 5 };
+
   // 1. CITAS ACTIVAS: No pasadas y que no estén canceladas/rechazadas/bloqueadas
-  const agendaCitas = appointments.filter(app => {
-    const isPast = new Date(app.startTime) < now;
-    return !isPast && app.status !== 'REJECTED' && app.status !== 'CANCELLED' && app.status !== 'BLOCKED';
-  });
+  // Se deduplicar por hora: si hay ASSIGNED y AVAILABLE para la misma hora, solo se muestra el ASSIGNED
+  const agendaCitas = (() => {
+    const filtered = appointments.filter(app => {
+      const isPast = new Date(app.startTime) < now;
+      return !isPast && app.status !== 'REJECTED' && app.status !== 'CANCELLED' && app.status !== 'BLOCKED';
+    });
+    const byTime = {};
+    for (const app of filtered) {
+      const key = app.startTime;
+      const curr = byTime[key];
+      const appPriority = STATUS_PRIORITY[app.status] ?? 99;
+      const currPriority = curr ? (STATUS_PRIORITY[curr.status] ?? 99) : Infinity;
+      if (appPriority < currPriority) byTime[key] = app;
+    }
+    return Object.values(byTime).sort((a, b) => new Date(b.startTime) - new Date(a.startTime));
+  })();
 
   // 2. BLOQUEOS ACTIVOS
   const bloqueos = appointments.filter(app => {
