@@ -38,9 +38,30 @@ function History({ authHeader, doctorId }) {
       .catch(err => { console.error(err); setLoading(false); });
   };
 
-  const presentStatuses = ['ALL', ...new Set(appointments.map(a => a.status))];
+  const STATUS_PRIORITY = { ASSIGNED: 1, OFFERED: 2, REASSIGNED: 3, COMPLETED: 4, BLOCKED: 5, AVAILABLE: 6 };
+  const deduplicated = (() => {
+    
+    const activeStatuses = new Set(['ASSIGNED', 'OFFERED', 'REASSIGNED', 'COMPLETED', 'BLOCKED']);
+    const activeTimes = new Set(
+      appointments.filter(a => activeStatuses.has(a.status)).map(a => String(a.startTime))
+    );
+    const cleaned = appointments.filter(a => a.status !== 'AVAILABLE' || !activeTimes.has(String(a.startTime)));
+    
+    const toMinuteKey = t => String(t).slice(0, 16);
+    const byTime = {};
+    for (const app of cleaned) {
+      const key = toMinuteKey(app.startTime);
+      const curr = byTime[key];
+      const appPriority = STATUS_PRIORITY[app.status] ?? 99;
+      const currPriority = curr ? (STATUS_PRIORITY[curr.status] ?? 99) : Infinity;
+      if (appPriority < currPriority) byTime[key] = app;
+    }
+    return Object.values(byTime);
+  })();
 
-  let filtered = appointments.filter(app => {
+  const presentStatuses = ['ALL', ...new Set(deduplicated.map(a => a.status))];
+
+  let filtered = deduplicated.filter(app => {
     const matchesSearch = !searchTerm || (app.patient
       ? `${app.patient.firstName} ${app.patient.lastName}`.toLowerCase().includes(searchTerm.toLowerCase())
       : false);
@@ -73,7 +94,7 @@ function History({ authHeader, doctorId }) {
           </div>
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
             <span style={{ backgroundColor: '#e2e8f0', color: '#475569', padding: '6px 12px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: '700' }}>
-              {sorted.length} / {appointments.length} registros
+              {sorted.length} / {deduplicated.length} registros
             </span>
             <button onClick={fetchAppointments} style={{ padding: '8px 16px', backgroundColor: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: '8px', cursor: 'pointer', color: '#475569', fontWeight: '600', fontSize: '13px' }}>
               🔄 Actualizar

@@ -108,9 +108,13 @@ function Agenda({ authHeader, doctorId }) {
       const isPast = new Date(app.startTime) < now;
       return !isPast && app.status !== 'REJECTED' && app.status !== 'CANCELLED' && app.status !== 'BLOCKED';
     });
-    const toMinuteKey = t => { const d = new Date(t); d.setSeconds(0, 0); return d.getTime(); };
+    const activeTimes = new Set(
+      filtered.filter(a => a.status !== 'AVAILABLE').map(a => String(a.startTime))
+    );
+    const preFiltered = filtered.filter(a => a.status !== 'AVAILABLE' || !activeTimes.has(String(a.startTime)));
+    const toMinuteKey = t => String(t).slice(0, 16);
     const byTime = {};
-    for (const app of filtered) {
+    for (const app of preFiltered) {
       const key = toMinuteKey(app.startTime);
       const curr = byTime[key];
       const appPriority = STATUS_PRIORITY[app.status] ?? 99;
