@@ -171,7 +171,7 @@ function DoctorReassignmentStats({ authHeader, doctorId }) {
                 return (
                   <tr key={log.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
                     <td style={{ padding: '14px 16px', fontSize: '0.875rem', color: '#475569' }}>
-                      {new Date(log.timestamp).toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' })}
+                      {new Date(log.timestamp + 'Z').toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' })}
                     </td>
                     <td style={{ padding: '14px 16px', fontSize: '0.875rem', color: '#475569' }}>
                       {new Date(log.appointmentDate).toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' })}
