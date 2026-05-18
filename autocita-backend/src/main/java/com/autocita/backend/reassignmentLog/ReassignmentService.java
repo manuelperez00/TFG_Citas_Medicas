@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -206,7 +207,7 @@ public class ReassignmentService {
         hueco.setPatient(candidato);
         hueco.setStatus(AppointmentStatus.OFFERED);
         // Inicio de los 15 minutos
-        hueco.setOfferedAt(LocalDateTime.now());
+        hueco.setOfferedAt(LocalDateTime.now(ZoneId.of("Europe/Madrid")));
 
         appointmentRepository.save(hueco);
         guardarLog(hueco, original, candidato, "OFERTA_ENVIADA");
