@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/appointments")
@@ -62,8 +64,20 @@ public class AppointmentController {
 
     @GetMapping("/doctor/{doctorId}")
     public ResponseEntity<List<Appointment>> getDoctorAppointments(@PathVariable Integer doctorId) {
-        // Devuelve todas las citas de ese médico
-        return ResponseEntity.ok(appointmentRepository.findByDoctorId(doctorId));
+        List<Appointment> all = appointmentRepository.findByDoctorId(doctorId);
+        // Eliminar AVAILABLE cuando existe una cita activa en el mismo slot (inconsistencia de datos)
+        Set<LocalDateTime> occupiedTimes = all.stream()
+            .filter(a -> a.getStatus() == AppointmentStatus.ASSIGNED
+                      || a.getStatus() == AppointmentStatus.OFFERED
+                      || a.getStatus() == AppointmentStatus.REASSIGNED
+                      || a.getStatus() == AppointmentStatus.COMPLETED
+                      || a.getStatus() == AppointmentStatus.BLOCKED)
+            .map(Appointment::getStartTime)
+            .collect(Collectors.toSet());
+        List<Appointment> filtered = all.stream()
+            .filter(a -> a.getStatus() != AppointmentStatus.AVAILABLE || !occupiedTimes.contains(a.getStartTime()))
+            .collect(Collectors.toList());
+        return ResponseEntity.ok(filtered);
     }
 
     @GetMapping("/doctor/{doctorId}/stats")
