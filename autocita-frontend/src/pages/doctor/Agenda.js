@@ -103,15 +103,15 @@ function Agenda({ authHeader, doctorId }) {
   const STATUS_PRIORITY = { ASSIGNED: 1, OFFERED: 2, REASSIGNED: 3, COMPLETED: 4, AVAILABLE: 5 };
 
   // 1. CITAS ACTIVAS: No pasadas y que no estén canceladas/rechazadas/bloqueadas
-  // Se deduplicar por hora: si hay ASSIGNED y AVAILABLE para la misma hora, solo se muestra el ASSIGNED
   const agendaCitas = (() => {
     const filtered = appointments.filter(app => {
       const isPast = new Date(app.startTime) < now;
       return !isPast && app.status !== 'REJECTED' && app.status !== 'CANCELLED' && app.status !== 'BLOCKED';
     });
+    const toMinuteKey = t => { const d = new Date(t); d.setSeconds(0, 0); return d.getTime(); };
     const byTime = {};
     for (const app of filtered) {
-      const key = app.startTime;
+      const key = toMinuteKey(app.startTime);
       const curr = byTime[key];
       const appPriority = STATUS_PRIORITY[app.status] ?? 99;
       const currPriority = curr ? (STATUS_PRIORITY[curr.status] ?? 99) : Infinity;
