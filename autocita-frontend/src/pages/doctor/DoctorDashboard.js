@@ -161,6 +161,14 @@ function DoctorDashboard({ authHeader, doctorId, onLogout }) {
     }).then(res => { if (res.ok) { fetchAppointments(); fetchStats(); fetchBlocked(); } });
   };
 
+  const handleUnblock = async (appointmentId) => {
+    if (!await showConfirm("¿Deseas eliminar este bloqueo y liberar el hueco?")) return;
+    fetch(`${API_URL}/api/appointments/${appointmentId}/unblock`, {
+      method: 'PUT',
+      headers: { 'Authorization': authHeader }
+    }).then(res => { if (res.ok) { fetchAppointments(); fetchStats(); fetchBlocked(); } });
+  };
+
   const handleProfileUpdate = async (updatedFields) => {
     try {
       const resp = await fetch('${API_URL}/api/doctors/me', {
@@ -862,7 +870,7 @@ function DoctorDashboard({ authHeader, doctorId, onLogout }) {
                           <h4 style={{ margin: 0, color: '#1e293b' }}>🔒 Bloques activos</h4>
                           <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#64748b' }}>Total de horarios bloqueados: <strong>{futureBlocks.length}</strong></p>
                         </div>
-                        <button onClick={() => { console.log('Actualizando bloques...'); fetchBlocked(); }} style={{ padding: '8px 16px', backgroundColor: '#f1f5f9', color: '#475569', border: '1px solid #e2e8f0', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '12px' }}>🔄 Refrescar ahora</button>
+                        <button onClick={() => { console.log('Actualizando bloques...'); fetchBlocked(); }} style={{ padding: '8px 16px', backgroundColor: '#f1f5f9', color: '#475569', border: '1px solid #e2e8f0', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '12px' }}>🔄 Actualizar</button>
                       </div>
                       <table style={styles.table}>
                         <thead>
@@ -881,7 +889,7 @@ function DoctorDashboard({ authHeader, doctorId, onLogout }) {
                               </td>
                               <td style={styles.td}>{app.notes || "Sin motivo"}</td>
                               <td style={styles.td}>
-                                <button style={styles.btnActionReject} onClick={() => handleCancel(app.id)}>Eliminar bloqueo</button>
+                                <button style={styles.btnActionReject} onClick={() => handleUnblock(app.id)}>Eliminar bloqueo</button>
                               </td>
                             </tr>
                           )) : (
