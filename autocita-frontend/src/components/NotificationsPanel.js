@@ -1,5 +1,31 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useModal } from './AppModal';
+
+function OfferCountdown({ offeredAt }) {
+  const calcLeft = (at) => {
+    if (!at) return 15 * 60;
+    return Math.max(0, Math.floor((new Date(at).getTime() + 15 * 60 * 1000 - Date.now()) / 1000));
+  };
+
+  const [secondsLeft, setSecondsLeft] = useState(() => calcLeft(offeredAt));
+
+  useEffect(() => {
+    setSecondsLeft(calcLeft(offeredAt));
+    const id = setInterval(() => setSecondsLeft(calcLeft(offeredAt)), 1000);
+    return () => clearInterval(id);
+  }, [offeredAt]);
+
+  const mins = Math.floor(secondsLeft / 60);
+  const secs = secondsLeft % 60;
+  const expired = secondsLeft <= 0;
+  const urgent = secondsLeft < 60;
+
+  return (
+    <div style={{ fontSize: '0.7rem', color: expired || urgent ? '#ef4444' : '#d97706', fontWeight: 'bold', marginBottom: '6px' }}>
+      ⏱️ {expired ? 'Oferta expirada' : `Tiempo restante: ${mins}:${String(secs).padStart(2, '0')}`}
+    </div>
+  );
+}
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -45,10 +71,11 @@ function NotificationsPanel({ offers, onRefresh, close, authHeader }) {
               <div style={{ fontSize: '0.85rem', marginBottom: '8px' }}>
                 🔔 <strong>¡Hueco disponible!</strong> en {offer.doctor.specialty.replace('_', ' ')}
               </div>
-              <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '10px' }}>
+              <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '6px' }}>
                 Con el Dr. {offer.doctor.lastName} <br/>
                 {new Date(offer.startTime).toLocaleString([], { dateStyle: 'long', timeStyle: 'short' })}
               </div>
+              <OfferCountdown offeredAt={offer.offeredAt} />
               <div style={{ display: 'flex', gap: '8px' }}>
                 <button onClick={() => handleAction(offer.id, true)} style={btnAccept}>✓ Aceptar</button>
                 <button onClick={() => handleAction(offer.id, false)} style={btnReject}>✕ Rechazar</button>

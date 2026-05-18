@@ -1,6 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import { useModal } from '../components/AppModal';
 
+function OfferCountdown({ offeredAt }) {
+  const calcLeft = (at) => {
+    if (!at) return 15 * 60;
+    return Math.max(0, Math.floor((new Date(at).getTime() + 15 * 60 * 1000 - Date.now()) / 1000));
+  };
+
+  const [secondsLeft, setSecondsLeft] = useState(() => calcLeft(offeredAt));
+
+  useEffect(() => {
+    setSecondsLeft(calcLeft(offeredAt));
+    const id = setInterval(() => setSecondsLeft(calcLeft(offeredAt)), 1000);
+    return () => clearInterval(id);
+  }, [offeredAt]);
+
+  const mins = Math.floor(secondsLeft / 60);
+  const secs = secondsLeft % 60;
+  const expired = secondsLeft <= 0;
+  const urgent = secondsLeft < 60;
+
+  return (
+    <p style={{ fontSize: '0.75rem', color: expired || urgent ? '#ef4444' : '#d97706', fontWeight: 'bold', marginTop: '5px', marginBottom: 0 }}>
+      ⏱️ {expired ? 'Oferta expirada' : `Tiempo restante: ${mins}:${String(secs).padStart(2, '0')}`}
+    </p>
+  );
+}
+
 const API_URL = process.env.REACT_APP_API_URL;
 
 function Notifications({ authHeader, patientId, onRefresh }) {
@@ -73,10 +99,7 @@ function Notifications({ authHeader, patientId, onRefresh }) {
             </p>
             <p style={{ margin: 0, fontSize: '0.8rem' }}>Dr. {offer.doctor.lastName}</p>
             
-            {/* AQUÍ VA EL AVISO DE TIEMPO */}
-            <p style={{ fontSize: '0.75rem', color: '#ef4444', fontWeight: 'bold', marginTop: '5px', marginBottom: 0 }}>
-              ⏱️ Tienes 15 minutos para responder
-            </p>
+            <OfferCountdown offeredAt={offer.offeredAt} />
           </div>
 
           <div style={{ display: 'flex', gap: '10px' }}>
