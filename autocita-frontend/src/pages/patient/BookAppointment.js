@@ -194,7 +194,7 @@ function BookAppointment({ authHeader, patientId }) {
 
     const currentSlotNormalized = normalizeForComparison(targetDateTime);
 
-    const activeOccupiedStatuses = ['BLOCKED', 'OFFERED', 'ASSIGNED', 'REASSIGNED', 'COMPLETED'];
+    const activeOccupiedStatuses = ['BLOCKED', 'OFFERED', 'ASSIGNED', 'REASSIGNED', 'COMPLETED', 'REASSIGNING'];
     const doctorAppsAtTime = Array.isArray(doctorAppointments)
       ? doctorAppointments.filter(a => normalizeForComparison(a.startTime) === currentSlotNormalized)
       : [];
@@ -211,12 +211,15 @@ function BookAppointment({ authHeader, patientId }) {
     // 1. Bloqueos manuales
     if (doctorApp?.status === 'BLOCKED') return 'BLOCKED';
 
-    // 2. Si la cita es del paciente logueado (Prioridad sobre Ocupado)
+    // 2. Slot en proceso de reasignación: no reservable mientras el algoritmo decide
+    if (doctorApp?.status === 'REASSIGNING') return 'REASSIGNING';
+
+    // 3. Si la cita es del paciente logueado (Prioridad sobre Ocupado)
     if (myApp && ['ASSIGNED', 'REASSIGNED', 'OFFERED'].includes(myApp.status)) {
       return 'MINE';
     }
 
-    // 3. Si hay una cita de otra persona (Estado ASSIGNED como en tu DB)
+    // 4. Si hay una cita de otra persona
     if (doctorApp && ['OFFERED', 'ASSIGNED', 'REASSIGNED', 'COMPLETED'].includes(doctorApp.status)) {
       return 'OCCUPIED';
     }
@@ -402,6 +405,10 @@ function BookAppointment({ authHeader, patientId }) {
                     <span style={{ color: '#64748b' }}>Ocupado</span>
                   </div>
                   <div style={{ display: 'flex', gap: '10px', alignItems: 'center', fontSize: '13px' }}>
+                    <div style={{ width: '16px', height: '16px', borderRadius: '4px', backgroundColor: '#fef3c7' }}></div>
+                    <span style={{ color: '#64748b' }}>En reasignación</span>
+                  </div>
+                  <div style={{ display: 'flex', gap: '10px', alignItems: 'center', fontSize: '13px' }}>
                     <div style={{ width: '16px', height: '16px', borderRadius: '4px', backgroundColor: '#fef9c3' }}></div>
                     <span style={{ color: '#64748b' }}>Mi solicitud</span>
                   </div>
@@ -514,13 +521,14 @@ const TimeGroup = ({ title, slots, getStatus, canBook, selected, onSelect }) => 
         const isSelected = selected === time;
         
         let displayStatus = status;
-        const colorMap = { 
+        const colorMap = {
           FREE: { bg: '#dcfce7', border: '#86efac', text: '#15803d', icon: '✓' },
           OCCUPIED: { bg: '#fee2e2', border: '#fca5a5', text: '#991b1b', icon: '×' },
           MINE: { bg: '#fef9c3', border: '#facc15', text: '#854d0e', icon: '📌' },
           BLOCKED: { bg: '#e2e8f0', border: '#cbd5e1', text: '#64748b', icon: '🔒' },
           PAST: { bg: '#f1f5f9', border: '#cbd5e1', text: '#94a3b8', icon: '⏱' },
-          LIMIT: { bg: '#f3e8ff', border: '#d8b4fe', text: '#6b21a8', icon: '⚠️' }
+          LIMIT: { bg: '#f3e8ff', border: '#d8b4fe', text: '#6b21a8', icon: '⚠️' },
+          REASSIGNING: { bg: '#fef3c7', border: '#fbbf24', text: '#92400e', icon: '⟳' }
         };
         
         if (status === 'FREE' && !canBookThisSlot) {
@@ -552,7 +560,7 @@ const TimeGroup = ({ title, slots, getStatus, canBook, selected, onSelect }) => 
               gap: '4px',
               boxShadow: isSelected ? '0 4px 12px rgba(102, 126, 234, 0.3)' : 'none'
             }}
-            title={displayStatus === 'LIMIT' ? 'Ya tienes cita ese día (máx 2 por día, 1 por especialidad)' : status === 'PAST' ? 'Hora pasada' : status === 'OCCUPIED' ? 'Ocupado' : status === 'BLOCKED' ? 'Bloqueado' : ''}
+            title={displayStatus === 'LIMIT' ? 'Ya tienes cita ese día (máx 2 por día, 1 por especialidad)' : status === 'PAST' ? 'Hora pasada' : status === 'OCCUPIED' ? 'Ocupado' : status === 'BLOCKED' ? 'Bloqueado' : status === 'REASSIGNING' ? 'Procesando reasignación, no disponible temporalmente' : ''}
           >
             <span style={{ fontSize: '16px' }}>{colors.icon}</span>
             <span>{time}</span>
