@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import AppointmentDetailModal from '../../components/AppointmentDetailModal';
+import { SPECIALTY_ES } from '../../utils/specialtyTranslations';
 
 const STATUS_LABELS = {
   ASSIGNED: 'Confirmada',
@@ -24,15 +25,6 @@ const STATUS_COLORS = {
 };
 
 const API_URL = process.env.REACT_APP_API_URL;
-
-const SPECIALTY_ES = {
-  PEDIATRICS: 'Pediatría', DERMATOLOGY: 'Dermatología', CARDIOLOGY: 'Cardiología',
-  GYNECOLOGY: 'Ginecología', DIGESTIVE: 'Digestivo', FAMILY_MEDICINE: 'Medicina de Familia',
-  TRAUMATOLOGY: 'Traumatología', OPHTHALMOLOGY: 'Oftalmología', ENDOCRINOLOGY: 'Endocrinología',
-  ENT: 'Otorrinolaringología', NEUROLOGY: 'Neurología', PSYCHIATRY: 'Psiquiatría',
-  PSYCHOLOGY: 'Psicología', GENERAL_SURGERY: 'Cirugía General', RADIOLOGY: 'Radiología',
-  UROLOGY: 'Urología', ALLERGY: 'Alergología',
-};
 
 function History({ authHeader, patientId }) {
   const [appointments, setAppointments] = useState([]);

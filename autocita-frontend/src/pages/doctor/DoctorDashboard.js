@@ -3,6 +3,8 @@ import { useLocation } from 'react-router-dom';
 import DoctorStats from './DoctorStats';
 import AppointmentTable from './AppointmentTable';
 import DoctorProfile from './DoctorProfile';
+import { translateSpecialty } from '../../utils/specialtyTranslations';
+import { translateStatus } from '../../utils/statusTranslations';
 import DoctorReassignmentStats from './DoctorReassignmentStats';
 import AppointmentDetailModal from '../../components/AppointmentDetailModal';
 import History from './History';
@@ -578,7 +580,7 @@ function DoctorDashboard({ authHeader, doctorId, onLogout }) {
                 )}
               </td>
               <td style={styles.td}>
-                <span style={{ ...styles.badge, backgroundColor: getStatusColor(app.status) }}>{app.status}</span>
+                <span style={{ ...styles.badge, backgroundColor: getStatusColor(app.status) }}>{translateStatus(app.status)}</span>
               </td>
               {showActions && (
                 <td style={{...styles.td, textAlign: 'right'}}>
@@ -615,7 +617,7 @@ function DoctorDashboard({ authHeader, doctorId, onLogout }) {
             <h2 style={{ margin: 0, color: '#1e293b' }}>Dr. {doctorData?.lastName}</h2>
             <p style={{ margin: 0, color: '#64748b' }}>{activeTab === 'agenda' ? 'Próximas citas' : activeTab === 'bloqueos' ? 'Control de disponibilidad' : activeTab === 'historial' ? 'Registro de actividad' : activeTab === 'estadisticas' ? 'Estadísticas de reasignación' : 'Ajustes de perfil'}</p>
           </div>
-          <div style={styles.userBadge}>{doctorData?.specialty}</div>
+          <div style={styles.userBadge}>{doctorData?.specialty ? translateSpecialty(doctorData.specialty) : ''}</div>
         </header>
 
         {activeTab === 'agenda' && (

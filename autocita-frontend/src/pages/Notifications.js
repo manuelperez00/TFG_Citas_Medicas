@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useModal } from '../components/AppModal';
+import { translateSpecialty } from '../utils/specialtyTranslations';
 
 function OfferCountdown({ offeredAt }) {
   const calcLeft = (at) => {
@@ -29,6 +30,9 @@ function OfferCountdown({ offeredAt }) {
 
 const API_URL = process.env.REACT_APP_API_URL;
 
+const isExpired = (offeredAt) =>
+  offeredAt && Date.now() > new Date(offeredAt).getTime() + 15 * 60 * 1000;
+
 function Notifications({ authHeader, patientId, onRefresh }) {
   const { showAlert } = useModal();
   const [offers, setOffers] = useState([]);
@@ -56,7 +60,11 @@ function Notifications({ authHeader, patientId, onRefresh }) {
     }
   };
 
-  const handleResponse = async (appointmentId, accepted) => {
+  const handleResponse = async (appointmentId, accepted, offeredAt) => {
+      if (isExpired(offeredAt)) {
+        showAlert('⏱️ Esta oferta ha expirado. Ya no es posible aceptarla ni rechazarla.');
+        return;
+      }
       try {
         console.log(`📤 Respondiendo oferta ${appointmentId}: ${accepted ? 'Aceptar' : 'Rechazar'}`);
         
@@ -93,7 +101,7 @@ function Notifications({ authHeader, patientId, onRefresh }) {
       {offers.map(offer => (
         <div key={offer.id} className="glass-card" style={offerCardStyle}>
           <div>
-            <p style={{ margin: 0, fontWeight: 'bold' }}>{offer.doctor.specialty.replace('_', ' ')}</p>
+            <p style={{ margin: 0, fontWeight: 'bold' }}>{translateSpecialty(offer.doctor.specialty)}</p>
             <p style={{ margin: 0, fontSize: '0.9rem', color: '#71717a' }}>
               {new Date(offer.startTime).toLocaleString([], { dateStyle: 'long', timeStyle: 'short' })}
             </p>
@@ -103,11 +111,11 @@ function Notifications({ authHeader, patientId, onRefresh }) {
           </div>
 
           <div style={{ display: 'flex', gap: '10px' }}>
-            <button 
-              onClick={() => handleResponse(offer.id, true)} 
+            <button
+              onClick={() => handleResponse(offer.id, true, offer.offeredAt)}
               style={btnAcceptStyle}>✓ Aceptar</button>
-            <button 
-              onClick={() => handleResponse(offer.id, false)} 
+            <button
+              onClick={() => handleResponse(offer.id, false, offer.offeredAt)}
               style={btnRejectStyle}>✕ Rechazar</button>
           </div>
         </div>

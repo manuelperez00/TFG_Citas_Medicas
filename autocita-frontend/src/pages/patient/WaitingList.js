@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useModal } from '../../components/AppModal';
+import { translateSpecialty } from '../../utils/specialtyTranslations';
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -228,7 +229,7 @@ function WaitingList({ authHeader, patientId }) {
         </div>
 
         <h4 style={{ margin: '0 0 15px 0', fontSize: '16px', color: '#1e293b', fontWeight: '600' }}>
-          {item.specialty.replace(/_/g, ' ')}
+          {translateSpecialty(item.specialty)}
         </h4>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '13px' }}>
@@ -622,7 +623,7 @@ function WaitingList({ authHeader, patientId }) {
 
                     {/* Especialidad */}
                     <h4 style={{ margin: '0 0 20px 0', fontSize: '18px', color: '#1e293b', fontWeight: '600' }}>
-                      {item.specialty.replace(/_/g, ' ')}
+                      {translateSpecialty(item.specialty)}
                     </h4>
 
                     {/* Detalles */}

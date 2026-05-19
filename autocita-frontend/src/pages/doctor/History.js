@@ -1,20 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import AppointmentTable from './AppointmentTable';
 import AppointmentDetailModal from '../../components/AppointmentDetailModal';
+import { STATUS_LABELS } from '../../utils/statusTranslations';
 
 const API_URL = process.env.REACT_APP_API_URL;
-
-const STATUS_LABELS = {
-  ALL: 'Todos los estados',
-  ASSIGNED: 'Confirmada',
-  COMPLETED: 'Completada',
-  OFFERED: 'Oferta pendiente',
-  REJECTED: 'Cancelada',
-  REASSIGNED: 'Reasignada',
-  BLOCKED: 'Bloqueado',
-  NOT_RESPONDED: 'Sin respuesta',
-  AVAILABLE: 'Disponible',
-};
 
 function History({ authHeader, doctorId }) {
   const [appointments, setAppointments] = useState([]);

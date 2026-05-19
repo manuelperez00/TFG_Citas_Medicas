@@ -1,4 +1,5 @@
 import React from 'react';
+import { translateStatus } from '../../utils/statusTranslations';
 
 const getStatusColor = (status) => {
   switch(status) {
@@ -48,7 +49,7 @@ function AppointmentTable({ data, showActions, onConfirm, onBlock, onRowClick })
                 )}
               </td>
               <td style={{ padding: '16px', verticalAlign: 'middle' }}>
-                <span style={{ padding: '4px 12px', borderRadius: '12px', color: 'white', fontSize: '0.7rem', fontWeight: '700', backgroundColor: getStatusColor(app.status) }}>{app.status}</span>
+                <span style={{ padding: '4px 12px', borderRadius: '12px', color: 'white', fontSize: '0.7rem', fontWeight: '700', backgroundColor: getStatusColor(app.status) }}>{translateStatus(app.status)}</span>
               </td>
             </tr>
           )) : (

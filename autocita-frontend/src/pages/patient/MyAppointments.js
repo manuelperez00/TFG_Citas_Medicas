@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import AppointmentDetailModal from '../../components/AppointmentDetailModal';
 import { useModal } from '../../components/AppModal';
+import { translateSpecialty } from '../../utils/specialtyTranslations';
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -231,7 +232,7 @@ function MyAppointments({ authHeader, patientId }) {
                         {new Date(app.startTime).toLocaleString('es-ES', { dateStyle: 'long', timeStyle: 'short' })}
                       </p>
                       <p style={{ margin: 0, color: '#64748b', fontSize: '13px' }}>
-                        👨‍⚕️ Dr. {app.doctor?.lastName || 'N/A'} • {app.doctor?.specialty || 'N/A'}
+                        👨‍⚕️ Dr. {app.doctor?.lastName || 'N/A'} • {app.doctor?.specialty ? translateSpecialty(app.doctor.specialty) : 'N/A'}
                       </p>
                     </div>
 

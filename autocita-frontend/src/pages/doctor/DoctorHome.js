@@ -1,16 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { SPECIALTY_ES } from '../../utils/specialtyTranslations';
 
 const API_URL = process.env.REACT_APP_API_URL;
-
-const SPECIALTY_ES = {
-  PEDIATRICS: 'Pediatría', DERMATOLOGY: 'Dermatología', CARDIOLOGY: 'Cardiología',
-  GYNECOLOGY: 'Ginecología', DIGESTIVE: 'Digestivo', FAMILY_MEDICINE: 'Medicina de Familia',
-  TRAUMATOLOGY: 'Traumatología', OPHTHALMOLOGY: 'Oftalmología', ENDOCRINOLOGY: 'Endocrinología',
-  ENT: 'Otorrinolaringología', NEUROLOGY: 'Neurología', PSYCHIATRY: 'Psiquiatría',
-  PSYCHOLOGY: 'Psicología', GENERAL_SURGERY: 'Cirugía General', RADIOLOGY: 'Radiología',
-  UROLOGY: 'Urología', ALLERGY: 'Alergología',
-};
 
 function DoctorHome({ authHeader, doctorId }) {
   const navigate = useNavigate();
