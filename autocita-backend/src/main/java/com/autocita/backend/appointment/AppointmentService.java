@@ -32,6 +32,9 @@ public class AppointmentService {
         @Autowired
         private EmailResponseTokenRepository emailTokenRepository;
 
+        @Autowired
+        private SlotStatusService slotStatusService;
+
         @Transactional
         public void cancelAppointment(Integer appointmentId) {
                 Appointment appointment = appointmentRepository.findById(appointmentId)
@@ -60,17 +63,20 @@ public class AppointmentService {
                 var existingAvailable = appointmentRepository.findByDoctorIdAndStartTimeActiveOnly(
                                 appointment.getDoctor().getId(), appointment.getStartTime());
                 if (existingAvailable.isPresent() && existingAvailable.get().getStatus() == AppointmentStatus.AVAILABLE) {
-                        slotParaReasignar = existingAvailable.get();
+                        // El slot ya existía como AVAILABLE (comprometido en BD). Lo marcamos como
+                        // REASSIGNING en transacción propia para que otros usuarios no puedan
+                        // reservarlo durante los segundos que tarda el algoritmo de reasignación.
+                        slotParaReasignar = slotStatusService.markAsReassigning(existingAvailable.get().getId());
                 } else {
                         slotParaReasignar = new Appointment();
                         slotParaReasignar.setDoctor(appointment.getDoctor());
                         slotParaReasignar.setStartTime(appointment.getStartTime());
-                        slotParaReasignar.setStatus(AppointmentStatus.AVAILABLE);
+                        slotParaReasignar.setStatus(AppointmentStatus.REASSIGNING);
                         slotParaReasignar.setPatient(null);
                         appointmentRepository.save(slotParaReasignar);
                 }
 
-                // 3. Procesar reasignación sobre el slot libre, no la cita cancelada del usuario
+                // 3. Procesar reasignación sobre el slot (ya marcado como REASSIGNING)
                 reassignmentService.procesarReasignacion(slotParaReasignar, oldPatient);
         }
 
@@ -234,12 +240,12 @@ public class AppointmentService {
                         var existingAvailable = appointmentRepository.findByDoctorIdAndStartTimeActiveOnly(
                                         futureAppointment.getDoctor().getId(), futureAppointment.getStartTime());
                         if (existingAvailable.isPresent() && existingAvailable.get().getStatus() == AppointmentStatus.AVAILABLE) {
-                                slotParaReasignar = existingAvailable.get();
+                                slotParaReasignar = slotStatusService.markAsReassigning(existingAvailable.get().getId());
                         } else {
                                 slotParaReasignar = new Appointment();
                                 slotParaReasignar.setDoctor(futureAppointment.getDoctor());
                                 slotParaReasignar.setStartTime(futureAppointment.getStartTime());
-                                slotParaReasignar.setStatus(AppointmentStatus.AVAILABLE);
+                                slotParaReasignar.setStatus(AppointmentStatus.REASSIGNING);
                                 slotParaReasignar.setPatient(null);
                                 appointmentRepository.save(slotParaReasignar);
                         }

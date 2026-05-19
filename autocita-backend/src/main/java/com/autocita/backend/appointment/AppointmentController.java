@@ -71,7 +71,8 @@ public class AppointmentController {
                       || a.getStatus() == AppointmentStatus.OFFERED
                       || a.getStatus() == AppointmentStatus.REASSIGNED
                       || a.getStatus() == AppointmentStatus.COMPLETED
-                      || a.getStatus() == AppointmentStatus.BLOCKED)
+                      || a.getStatus() == AppointmentStatus.BLOCKED
+                      || a.getStatus() == AppointmentStatus.REASSIGNING)
             .map(Appointment::getStartTime)
             .collect(Collectors.toSet());
         List<Appointment> filtered = all.stream()
@@ -148,11 +149,12 @@ public class AppointmentController {
                 return ResponseEntity.badRequest().body("El médico ha bloqueado ese horario.");
             }
 
-            // Si ya ocupa con cita real, no se puede reservar.
+            // Si ya ocupa con cita real o está en proceso de reasignación, no se puede reservar.
             if (existingApp.getStatus() == AppointmentStatus.ASSIGNED ||
                     existingApp.getStatus() == AppointmentStatus.OFFERED ||
                     existingApp.getStatus() == AppointmentStatus.REASSIGNED ||
-                    existingApp.getStatus() == AppointmentStatus.COMPLETED) {
+                    existingApp.getStatus() == AppointmentStatus.COMPLETED ||
+                    existingApp.getStatus() == AppointmentStatus.REASSIGNING) {
                 return ResponseEntity.badRequest()
                         .body("El médico ya tiene una cita en esa hora.");
             }
@@ -340,7 +342,8 @@ public class AppointmentController {
                 var existing = appointmentOpt.get();
                 if (existing.getStatus() == AppointmentStatus.ASSIGNED ||
                         existing.getStatus() == AppointmentStatus.OFFERED ||
-                        existing.getStatus() == AppointmentStatus.REASSIGNED) {
+                        existing.getStatus() == AppointmentStatus.REASSIGNED ||
+                        existing.getStatus() == AppointmentStatus.REASSIGNING) {
                     System.out.println("Hay cita confirmada en " + current);
                     return ResponseEntity.badRequest().body(
                             "No se puede bloquear porque hay citas confirmadas en este horario (" + current + "). " +

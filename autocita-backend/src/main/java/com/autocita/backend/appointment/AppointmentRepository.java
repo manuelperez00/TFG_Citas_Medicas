@@ -100,7 +100,7 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
         @Query("SELECT CASE WHEN COUNT(a) > 0 THEN true ELSE false END FROM Appointment a " +
                         "WHERE a.doctor.id = :doctorId " +
                         "AND a.startTime = :startTime " +
-                        "AND a.status IN ('ASSIGNED', 'OFFERED', 'REASSIGNED', 'COMPLETED', 'BLOCKED')")
+                        "AND a.status IN ('ASSIGNED', 'OFFERED', 'REASSIGNED', 'COMPLETED', 'BLOCKED', 'REASSIGNING')")
         boolean existsOccupiedByDoctorIdAndStartTime(
                         @Param("doctorId") Integer doctorId,
                         @Param("startTime") LocalDateTime startTime);
