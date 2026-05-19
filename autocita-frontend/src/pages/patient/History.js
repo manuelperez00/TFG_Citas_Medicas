@@ -5,6 +5,7 @@ import { SPECIALTY_ES } from '../../utils/specialtyTranslations';
 const STATUS_LABELS = {
   ASSIGNED: 'Confirmada',
   OFFERED: 'Oferta pendiente',
+  OFFERED_EXPIRED: 'Oferta expirada',
   COMPLETED: 'Completada',
   REJECTED: 'Cancelada',
   REASSIGNED: 'Reasignada',
@@ -16,12 +17,21 @@ const STATUS_LABELS = {
 const STATUS_COLORS = {
   ASSIGNED: '#10b981',
   OFFERED: '#f59e0b',
+  OFFERED_EXPIRED: '#94a3b8',
   COMPLETED: '#0ea5e9',
   REJECTED: '#ef4444',
   REASSIGNED: '#8b5cf6',
   BLOCKED: '#475569',
   AVAILABLE: '#22c55e',
   NOT_RESPONDED: '#fbbf24',
+};
+
+const getEffectiveStatus = (app) => {
+  if (app.status === 'OFFERED' && app.offeredAt) {
+    const offeredAt = new Date(app.offeredAt);
+    if ((new Date() - offeredAt) > 15 * 60 * 1000) return 'OFFERED_EXPIRED';
+  }
+  return app.status;
 };
 
 const API_URL = process.env.REACT_APP_API_URL;
@@ -157,9 +167,11 @@ function History({ authHeader, patientId }) {
                       {SPECIALTY_ES[app.doctor?.specialty] || app.doctor?.specialty || '—'}
                     </td>
                     <td style={{ padding: '14px 16px', verticalAlign: 'middle' }}>
-                      <span style={{ padding: '4px 12px', borderRadius: '12px', color: 'white', fontSize: '0.7rem', fontWeight: '700', backgroundColor: STATUS_COLORS[app.status] || '#94a3b8' }}>
-                        {STATUS_LABELS[app.status] || app.status}
-                      </span>
+                      {(() => { const s = getEffectiveStatus(app); return (
+                        <span style={{ padding: '4px 12px', borderRadius: '12px', color: 'white', fontSize: '0.7rem', fontWeight: '700', backgroundColor: STATUS_COLORS[s] || '#94a3b8' }}>
+                          {STATUS_LABELS[s] || s}
+                        </span>
+                      ); })()}
                     </td>
                     <td style={{ padding: '14px 16px', verticalAlign: 'middle' }}>
                       {app.status === 'COMPLETED' ? (

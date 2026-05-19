@@ -734,7 +734,7 @@ function WaitingList({ authHeader, patientId }) {
               {notRespondedItems.length > 0 && (
                 <div style={{ marginBottom: '50px' }}>
                   <h4 style={{ color: '#f97316', fontSize: '16px', fontWeight: '600', marginBottom: '15px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span>🔔</span> No respondidas (pendientes de segunda vuelta)
+                    <span>🔔</span> No respondidas
                   </h4>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '15px' }}>
                     {notRespondedItems.map(item => renderWaitingListItem(item, '#fff7ed', '#f97316', '🔔 No respondida'))}

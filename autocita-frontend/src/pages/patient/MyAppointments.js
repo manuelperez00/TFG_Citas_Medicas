@@ -47,6 +47,13 @@ function MyAppointments({ authHeader, patientId }) {
     return diffInHours >= 12;
   };
 
+  const isOfferExpired = (app) => {
+    if (app.status !== 'OFFERED') return false;
+    if (!app.offeredAt) return false;
+    const offeredAt = new Date(app.offeredAt);
+    return (new Date() - offeredAt) > 15 * 60 * 1000;
+  };
+
   const handleCancelAppointment = async (appointmentId) => {
     if (!await showConfirm("¿Seguro que deseas cancelar esta cita?")) return;
 
@@ -80,7 +87,7 @@ function MyAppointments({ authHeader, patientId }) {
   
   const citasActivas = appointments.filter(app => {
     const isPast = new Date(app.startTime) < now;
-    return !isPast && app.status !== 'REJECTED' && app.status !== 'CANCELLED' && app.status !== 'BLOCKED';
+    return !isPast && app.status !== 'REJECTED' && app.status !== 'CANCELLED' && app.status !== 'BLOCKED' && !isOfferExpired(app);
   });
 
   const citasCanceladas = appointments.filter(app => {
