@@ -21,9 +21,12 @@ public class ReassignmentLogController {
 
     @GetMapping("/doctor/{doctorId}/stats")
     public ResponseEntity<?> getDoctorReassignmentStats(@PathVariable Integer doctorId) {
-        long ofertasEnviadas  = reassignmentLogRepository.countByAppointmentDoctorIdAndReason(doctorId, "OFERTA_ENVIADA");
-        long rechazadas       = reassignmentLogRepository.countByAppointmentDoctorIdAndReason(doctorId, "OFERTA_RECHAZADA");
-        long noRespondidas    = reassignmentLogRepository.countByAppointmentDoctorIdAndReason(doctorId, "NOT_RESPONDED");
+        long ofertasEnviadas  = reassignmentLogRepository.countByAppointmentDoctorIdAndReason(doctorId, "OFERTA_ENVIADA")
+                              + reassignmentLogRepository.countByAppointmentDoctorIdAndReason(doctorId, "OFERTA_ENVIADA_R2");
+        long rechazadas       = reassignmentLogRepository.countByAppointmentDoctorIdAndReason(doctorId, "OFERTA_RECHAZADA")
+                              + reassignmentLogRepository.countByAppointmentDoctorIdAndReason(doctorId, "OFERTA_RECHAZADA_R2");
+        long noRespondidas    = reassignmentLogRepository.countByAppointmentDoctorIdAndReason(doctorId, "NOT_RESPONDED")
+                              + reassignmentLogRepository.countByAppointmentDoctorIdAndReason(doctorId, "NOT_RESPONDED_R2");
         long sinCandidatos    = reassignmentLogRepository.countByAppointmentDoctorIdAndReason(doctorId, "SIN_CANDIDATOS_DISPONIBLES");
         long aprovechados     = appointmentRepository.countByDoctorIdAndIsReassignedTrue(doctorId);
 

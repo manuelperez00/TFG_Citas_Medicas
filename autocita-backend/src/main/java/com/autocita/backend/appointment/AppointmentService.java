@@ -156,30 +156,38 @@ public class AppointmentService {
                         cancelFutureAssignedAppointmentsSameSpecialty(pacienteCandidato, appointment);
 
                 } else {
-                        // Caso B: El paciente rechaza o no responde (Pasar al siguiente)
-                        String motivo = isTimeout ? "NOT_RESPONDED" : "OFERTA_RECHAZADA";
+                        // Caso B: El paciente rechaza o no responde
+                        boolean esSegundaVuelta = appointment.isSecondRound();
+                        String motivo;
+                        if (esSegundaVuelta) {
+                                // Segunda vuelta: descarte definitivo independientemente de si rechazó o no respondió
+                                motivo = isTimeout ? "NOT_RESPONDED_R2" : "OFERTA_RECHAZADA_R2";
+                        } else {
+                                // Primera vuelta
+                                motivo = isTimeout ? "NOT_RESPONDED" : "OFERTA_RECHAZADA";
+                        }
                         reassignmentService.guardarLog(appointment, null, pacienteCandidato, motivo);
 
-                        // Marcar la entrada de lista de espera como REJECTED EN VEZ DE ELIMINAR
-                        // Esto permite conservar el historial y que el paciente vea por qué fue
-                        // rechazada
                         reassignmentService.marcarListasEsperaComoRechazadas(
                                         appointment.getId(),
                                         pacienteCandidato.getId(),
                                         appointment.getDoctor().getSpecialty());
 
-                        System.out.println("❌ Solicitud de lista de espera marcada como REJECTED para paciente ID: " +
+                        System.out.println((esSegundaVuelta ? "❌ [R2]" : "❌ [R1]") +
+                                        " Lista de espera marcada REJECTED - paciente ID: " +
                                         pacienteCandidato.getId() +
                                         " - Especialidad: " + appointment.getDoctor().getSpecialty() +
                                         " - Motivo: " + motivo);
 
-                        // Vaciamos el paciente actual y volvemos a ejecutar el algoritmo (CASCADA
-                        // AUTOMÁTICA)
-                        // Como ahora existe un log de rechazo/timeout, el filtro de excluidos lo
-                        // saltará
-                        // Y el status de la lista de espera es REJECTED, no aparecerá en candidatos
                         appointment.setPatient(null);
-                        reassignmentService.procesarReasignacion(appointment, null);
+
+                        if (esSegundaVuelta) {
+                                // Continuar segunda vuelta con el siguiente candidato no respondido
+                                reassignmentService.procesarSegundaVuelta(appointment, null);
+                        } else {
+                                // Continuar primera vuelta (cascada automática)
+                                reassignmentService.procesarReasignacion(appointment, null);
+                        }
                 }
         }
 

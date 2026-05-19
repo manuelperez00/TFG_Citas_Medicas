@@ -88,10 +88,55 @@ public class ReassignmentService {
             return;
         }
 
-        // INTENTO 5: Si no hay candidatos disponibles, dejar hueco libre
-        System.out.println("ℹSin candidatos disponibles para el hueco del " + fechaHueco +
-                " ni para el " + fechaSiguiente);
+        // INTENTO 5: Sin candidatos nuevos → intentar segunda vuelta con los que no respondieron
+        System.out.println("ℹ Sin candidatos nuevos para el hueco del " + fechaHueco +
+                " ni para el " + fechaSiguiente + ". Comprobando lista de no respondidos...");
+        List<com.autocita.backend.patient.Patient> candidatosR2 = buscarCandidatosNoRespondidos(hueco);
+        if (!candidatosR2.isEmpty()) {
+            System.out.println("🔄 Segunda vuelta: " + candidatosR2.size() + " candidato(s) que no respondieron en primera ronda.");
+            procesarSegundaVuelta(hueco, pacienteOriginal);
+            return;
+        }
+
+        System.out.println("ℹ Sin candidatos en ninguna vuelta. Dejando hueco libre.");
         dejarHuecoLibre(hueco, pacienteOriginal);
+    }
+
+    /**
+     * Devuelve los candidatos que no respondieron en primera ronda y que todavía
+     * no han sido intentados (ni descartados) en segunda vuelta, en el mismo orden
+     * en que el algoritmo los encontró originalmente.
+     */
+    private List<com.autocita.backend.patient.Patient> buscarCandidatosNoRespondidos(Appointment hueco) {
+        List<com.autocita.backend.patient.Patient> noRespondieron =
+                reassignmentLogRepository.findNotRespondedPatientsOrdered(hueco.getId());
+        List<Integer> yaDescartadosR2 =
+                reassignmentLogRepository.findSecondRoundExcludedIds(hueco.getId());
+
+        return noRespondieron.stream()
+                .filter(p -> !yaDescartadosR2.contains(p.getId()))
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    /**
+     * Segunda vuelta: ofrece el hueco en orden a los candidatos que no respondieron
+     * en la primera ronda. Si todos rechazan o no responden de nuevo, el hueco
+     * queda libre definitivamente.
+     */
+    @Transactional
+    public void procesarSegundaVuelta(Appointment hueco, Patient original) {
+        List<com.autocita.backend.patient.Patient> candidatosR2 = buscarCandidatosNoRespondidos(hueco);
+
+        if (candidatosR2.isEmpty()) {
+            System.out.println("ℹ Segunda vuelta agotada. Dejando hueco libre definitivamente.");
+            dejarHuecoLibre(hueco, original);
+            return;
+        }
+
+        com.autocita.backend.patient.Patient candidato = candidatosR2.get(0);
+        System.out.println("🔄 Segunda vuelta: ofreciendo a " + candidato.getEmail()
+                + " (" + (candidatosR2.size() - 1) + " candidato(s) pendientes tras este)");
+        ofrecerHueco(hueco, candidato, original, true);
     }
 
     private Optional<WaitingList> buscarCandidatos(Appointment hueco, Patient pacienteOriginal,
@@ -204,26 +249,36 @@ public class ReassignmentService {
     }
 
     private void ofrecerHueco(Appointment hueco, Patient candidato, Patient original) {
+        ofrecerHueco(hueco, candidato, original, false);
+    }
+
+    private void ofrecerHueco(Appointment hueco, Patient candidato, Patient original, boolean segundaVuelta) {
+        if (segundaVuelta) {
+            hueco.setSecondRound(true);
+        }
         hueco.setPatient(candidato);
         hueco.setStatus(AppointmentStatus.OFFERED);
-        // Inicio de los 15 minutos
         hueco.setOfferedAt(LocalDateTime.now(ZoneId.of("Europe/Madrid")));
-
         appointmentRepository.save(hueco);
-        guardarLog(hueco, original, candidato, "OFERTA_ENVIADA");
 
-        // NUEVO: Actualizar status de la lista de espera a OFFERED
+        guardarLog(hueco, original, candidato, segundaVuelta ? "OFERTA_ENVIADA_R2" : "OFERTA_ENVIADA");
+
+        // Actualizar status de la lista de espera a OFFERED.
+        // En primera vuelta buscamos entradas ACTIVE; en segunda vuelta la entrada
+        // puede estar ya en REJECTED (por no haber respondido antes), así que la
+        // reabrimos a OFFERED para que el paciente pueda ver y responder desde la app.
         List<WaitingList> registros = waitingListRepository.findByPatientId(candidato.getId());
         for (WaitingList w : registros) {
-            if (w.getStatus() == com.autocita.backend.waitingList.WaitingListStatus.ACTIVE
-                    && w.getSpecialty() == hueco.getDoctor().getSpecialty()) {
+            boolean elegible = segundaVuelta
+                    ? w.getStatus() == com.autocita.backend.waitingList.WaitingListStatus.REJECTED
+                    : w.getStatus() == com.autocita.backend.waitingList.WaitingListStatus.ACTIVE;
+            if (elegible && w.getSpecialty() == hueco.getDoctor().getSpecialty()) {
                 w.setStatus(com.autocita.backend.waitingList.WaitingListStatus.OFFERED);
                 waitingListRepository.save(w);
-                break; // Solo actualizar el primero
+                break;
             }
         }
 
-        // Generar tokens y enviar email
         enviarNotificacionPorEmail(hueco, candidato);
     }
 
