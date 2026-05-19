@@ -52,8 +52,12 @@ function Notifications({ authHeader, patientId, onRefresh }) {
         headers: { 'Authorization': authHeader }
       });
       const data = await res.json();
-      // Filtramos solo las que están esperando respuesta
-      const pending = data.filter(app => app.status === 'OFFERED');
+      const now = Date.now();
+      const pending = data.filter(app =>
+        app.status === 'OFFERED' &&
+        app.offeredAt &&
+        (new Date(app.offeredAt).getTime() + 15 * 60 * 1000) > now
+      );
       setOffers(pending);
     } catch (err) {
       console.error("Error al cargar ofertas:", err);
@@ -63,6 +67,8 @@ function Notifications({ authHeader, patientId, onRefresh }) {
   const handleResponse = async (appointmentId, accepted, offeredAt) => {
       if (isExpired(offeredAt)) {
         showAlert('⏱️ Esta oferta ha expirado. Ya no es posible aceptarla ni rechazarla.');
+        setOffers(prev => prev.filter(o => o.id !== appointmentId));
+        if (onRefresh) onRefresh();
         return;
       }
       try {
@@ -100,7 +106,7 @@ function Notifications({ authHeader, patientId, onRefresh }) {
       </h3>
       {offers.map(offer => (
         <div key={offer.id} className="glass-card" style={offerCardStyle}>
-          <div>
+          <div style={{ textAlign: 'left' }}>
             <p style={{ margin: 0, fontWeight: 'bold' }}>{translateSpecialty(offer.doctor.specialty)}</p>
             <p style={{ margin: 0, fontSize: '0.9rem', color: '#71717a' }}>
               {new Date(offer.startTime).toLocaleString([], { dateStyle: 'long', timeStyle: 'short' })}
