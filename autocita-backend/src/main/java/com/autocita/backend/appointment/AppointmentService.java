@@ -168,10 +168,18 @@ public class AppointmentService {
                         }
                         reassignmentService.guardarLog(appointment, null, pacienteCandidato, motivo);
 
-                        reassignmentService.marcarListasEsperaComoRechazadas(
-                                        appointment.getId(),
-                                        pacienteCandidato.getId(),
-                                        appointment.getDoctor().getSpecialty());
+                        if (isTimeout) {
+                                // No respondió → NOT_RESPONDED (elegible para segunda vuelta)
+                                reassignmentService.marcarListasEsperaComoNoRespondidas(
+                                                pacienteCandidato.getId(),
+                                                appointment.getDoctor().getSpecialty());
+                        } else {
+                                // Rechazó explícitamente → REJECTED (excluido para siempre)
+                                reassignmentService.marcarListasEsperaComoRechazadas(
+                                                appointment.getId(),
+                                                pacienteCandidato.getId(),
+                                                appointment.getDoctor().getSpecialty());
+                        }
 
                         System.out.println((esSegundaVuelta ? "❌ [R2]" : "❌ [R1]") +
                                         " Lista de espera marcada REJECTED - paciente ID: " +

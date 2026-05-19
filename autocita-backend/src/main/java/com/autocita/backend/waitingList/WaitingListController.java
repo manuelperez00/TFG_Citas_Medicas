@@ -39,6 +39,7 @@ public class WaitingListController {
         response.setOffered(todas.stream().filter(w -> w.getStatus() == WaitingListStatus.OFFERED).toList());
         response.setAccepted(todas.stream().filter(w -> w.getStatus() == WaitingListStatus.ACCEPTED).toList());
         response.setRejected(todas.stream().filter(w -> w.getStatus() == WaitingListStatus.REJECTED).toList());
+        response.setNotResponded(todas.stream().filter(w -> w.getStatus() == WaitingListStatus.NOT_RESPONDED).toList());
         response.setExpired(todas.stream().filter(w -> w.getStatus() == WaitingListStatus.EXPIRED).toList());
         response.setCancelled(todas.stream().filter(w -> w.getStatus() == WaitingListStatus.CANCELLED).toList());
 

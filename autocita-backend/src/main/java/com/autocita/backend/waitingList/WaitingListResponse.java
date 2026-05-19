@@ -11,10 +11,11 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class WaitingListResponse {
-    private List<WaitingList> active; // ACTIVE
-    private List<WaitingList> offered; // OFFERED (esperando respuesta)
-    private List<WaitingList> accepted; // ACCEPTED (aceptada)
-    private List<WaitingList> rejected; // REJECTED (rechazada)
-    private List<WaitingList> expired; // EXPIRED (fecha pasó)
-    private List<WaitingList> cancelled; // CANCELLED (cancelada por paciente)
+    private List<WaitingList> active;       // ACTIVE
+    private List<WaitingList> offered;      // OFFERED (esperando respuesta)
+    private List<WaitingList> accepted;     // ACCEPTED (aceptada)
+    private List<WaitingList> rejected;     // REJECTED (rechazó explícitamente)
+    private List<WaitingList> notResponded; // NOT_RESPONDED (no respondió → segunda vuelta posible)
+    private List<WaitingList> expired;      // EXPIRED (fecha pasó sin oferta)
+    private List<WaitingList> cancelled;    // CANCELLED (cancelada por paciente)
 }

@@ -271,7 +271,7 @@ public class ReassignmentService {
         List<WaitingList> registros = waitingListRepository.findByPatientId(candidato.getId());
         for (WaitingList w : registros) {
             boolean elegible = segundaVuelta
-                    ? w.getStatus() == com.autocita.backend.waitingList.WaitingListStatus.REJECTED
+                    ? w.getStatus() == com.autocita.backend.waitingList.WaitingListStatus.NOT_RESPONDED
                     : w.getStatus() == com.autocita.backend.waitingList.WaitingListStatus.ACTIVE;
             if (elegible && w.getSpecialty() == hueco.getDoctor().getSpecialty()) {
                 w.setStatus(com.autocita.backend.waitingList.WaitingListStatus.OFFERED);
@@ -477,16 +477,27 @@ public class ReassignmentService {
         }
     }
 
-    // Marca como REJECTED todos los registros de lista de espera de un paciente
-    // después de rechazar una oferta
+    // Marca como REJECTED: rechazo explícito → excluido permanentemente
     @Transactional
     public void marcarListasEsperaComoRechazadas(Integer appointmentId, Integer patientId, Specialty specialty) {
         List<WaitingList> registros = waitingListRepository.findByPatientId(patientId);
-
         for (WaitingList w : registros) {
             if (w.getStatus() == com.autocita.backend.waitingList.WaitingListStatus.OFFERED
                     && w.getSpecialty() == specialty) {
                 w.setStatus(com.autocita.backend.waitingList.WaitingListStatus.REJECTED);
+                waitingListRepository.save(w);
+            }
+        }
+    }
+
+    // Marca como NOT_RESPONDED: no respondió a la oferta en tiempo → el algoritmo los reintenta en segunda vuelta
+    @Transactional
+    public void marcarListasEsperaComoNoRespondidas(Integer patientId, Specialty specialty) {
+        List<WaitingList> registros = waitingListRepository.findByPatientId(patientId);
+        for (WaitingList w : registros) {
+            if (w.getStatus() == com.autocita.backend.waitingList.WaitingListStatus.OFFERED
+                    && w.getSpecialty() == specialty) {
+                w.setStatus(com.autocita.backend.waitingList.WaitingListStatus.NOT_RESPONDED);
                 waitingListRepository.save(w);
             }
         }
