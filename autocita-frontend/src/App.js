@@ -42,8 +42,15 @@ function AppContent() {
       });
       if (res.ok) {
         const data = await res.json();
-        // Filtramos solo las pendientes de respuesta (OFFERED)
-        const pendingOffers = data.filter(app => app.status === 'OFFERED');
+        const now = Date.now();
+        // Filtramos OFFERED no expiradas. Las expiradas las excluimos aquí para que
+        // la campana y el panel no las cuenten aunque el scheduler aún no las haya
+        // procesado en el backend (el scheduler corre cada 60 s, el poll cada 10 s).
+        const pendingOffers = data.filter(app =>
+          app.status === 'OFFERED' &&
+          app.offeredAt &&
+          (new Date(app.offeredAt).getTime() + 15 * 60 * 1000) > now
+        );
         setOffers(pendingOffers);
       }
     } catch (err) {

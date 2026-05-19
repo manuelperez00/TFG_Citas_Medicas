@@ -39,6 +39,8 @@ function NotificationsPanel({ offers, onRefresh, close, authHeader }) {
   const handleAction = async (id, accepted, offeredAt) => {
     if (isExpired(offeredAt)) {
       showAlert('⏱️ Esta oferta ha expirado. Ya no es posible aceptarla ni rechazarla.');
+      onRefresh();
+      if (offers.length === 1) close();
       return;
     }
     try {
