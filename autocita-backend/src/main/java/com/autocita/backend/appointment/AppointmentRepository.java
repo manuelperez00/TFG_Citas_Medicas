@@ -118,7 +118,7 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
         @Query("SELECT COUNT(a) FROM Appointment a WHERE a.doctor.id = :doctorId AND a.rating IS NOT NULL")
         Long countRatedByDoctorId(@Param("doctorId") Integer doctorId);
 
-        @Query("SELECT a FROM Appointment a WHERE a.patient.id = :patientId AND a.doctor.specialty = :specialty AND a.status = 'OFFERED'")
+        @Query("SELECT a FROM Appointment a WHERE a.patient.id = :patientId AND a.doctor.specialty = :specialty AND a.status = 'OFFERED' ORDER BY a.offeredAt DESC LIMIT 1")
         Optional<Appointment> findOfferedByPatientAndSpecialty(
                         @Param("patientId") Integer patientId,
                         @Param("specialty") com.autocita.backend.doctor.Specialty specialty);
