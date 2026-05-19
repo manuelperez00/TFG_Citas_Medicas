@@ -28,6 +28,9 @@ public interface ReassignmentLogRepository extends JpaRepository<ReassignmentLog
     @Query("SELECT l.newPatient.id FROM ReassignmentLog l WHERE l.appointment.id = :appId AND (l.reason = 'OFERTA_RECHAZADA_R2' OR l.reason = 'NOT_RESPONDED_R2')")
     List<Integer> findSecondRoundExcludedIds(@Param("appId") Integer appId);
 
+    @Query("SELECT COUNT(l) > 0 FROM ReassignmentLog l WHERE l.appointment.id = :appId AND l.reason = :reason")
+    boolean existsByAppointmentIdAndReason(@Param("appId") Integer appId, @Param("reason") String reason);
+
     @Query("SELECT l FROM ReassignmentLog l WHERE l.appointment.doctor.id = :doctorId ORDER BY l.timestamp DESC")
     List<ReassignmentLog> findByAppointmentDoctorId(@Param("doctorId") Integer doctorId);
 

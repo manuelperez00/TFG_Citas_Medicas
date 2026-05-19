@@ -252,10 +252,11 @@ public class ReassignmentService {
         ofrecerHueco(hueco, candidato, original, false);
     }
 
+    public boolean isSecondRound(Integer appointmentId) {
+        return reassignmentLogRepository.existsByAppointmentIdAndReason(appointmentId, "OFERTA_ENVIADA_R2");
+    }
+
     private void ofrecerHueco(Appointment hueco, Patient candidato, Patient original, boolean segundaVuelta) {
-        if (segundaVuelta) {
-            hueco.setSecondRound(true);
-        }
         hueco.setPatient(candidato);
         hueco.setStatus(AppointmentStatus.OFFERED);
         hueco.setOfferedAt(LocalDateTime.now(ZoneId.of("Europe/Madrid")));

@@ -41,9 +41,6 @@ public class Appointment extends BaseEntity {
     @Column(name = "is_reassigned")
     private boolean isReassigned = false;
 
-    @Column(name = "second_round")
-    private boolean secondRound = false;
-
     @Column(name = "notes", length = 500, nullable = true)
     private String notes;
 

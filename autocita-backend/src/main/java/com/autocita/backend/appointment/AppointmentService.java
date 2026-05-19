@@ -119,6 +119,7 @@ public class AppointmentService {
                                 .orElseThrow(() -> new EntityNotFoundException("Cita no encontrada"));
 
                 Patient pacienteCandidato = appointment.getPatient();
+                boolean esSegundaVuelta = reassignmentService.isSecondRound(appointmentId);
 
                 if (accepted) {
                         // Caso A: El paciente acepta la notificación
@@ -157,7 +158,6 @@ public class AppointmentService {
 
                 } else {
                         // Caso B: El paciente rechaza o no responde
-                        boolean esSegundaVuelta = appointment.isSecondRound();
                         String motivo;
                         if (esSegundaVuelta) {
                                 // Segunda vuelta: descarte definitivo independientemente de si rechazó o no respondió
