@@ -10,6 +10,7 @@ function WaitingList({ authHeader, patientId }) {
   const [offeredItems, setOfferedItems] = useState([]);
   const [acceptedItems, setAcceptedItems] = useState([]);
   const [rejectedItems, setRejectedItems] = useState([]);
+  const [notRespondedItems, setNotRespondedItems] = useState([]);
   const [expiredItems, setExpiredItems] = useState([]);
   const [cancelledItems, setCancelledItems] = useState([]);
   
@@ -147,6 +148,7 @@ function WaitingList({ authHeader, patientId }) {
       setOfferedItems(data.offered || []);
       setAcceptedItems(data.accepted || []);
       setRejectedItems(data.rejected || []);
+      setNotRespondedItems(data.notResponded || []);
       setExpiredItems(data.expired || []);
       setCancelledItems(data.cancelled || []);
     })
@@ -685,7 +687,7 @@ function WaitingList({ authHeader, patientId }) {
           )}
 
           {/* OTRAS SOLICITUDES (No activas) */}
-          {(offeredItems.length > 0 || acceptedItems.length > 0 || rejectedItems.length > 0 || expiredItems.length > 0 || cancelledItems.length > 0) && (
+          {(offeredItems.length > 0 || acceptedItems.length > 0 || rejectedItems.length > 0 || notRespondedItems.length > 0 || expiredItems.length > 0 || cancelledItems.length > 0) && (
             <div style={{ marginTop: '60px' }}>
               <h3 style={{ marginBottom: '25px', color: '#1e293b', fontSize: '20px', fontWeight: '600', marginTop: 0, display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <span style={{ fontSize: '24px' }}>📋</span>
@@ -724,6 +726,18 @@ function WaitingList({ authHeader, patientId }) {
                   </h4>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '15px' }}>
                     {rejectedItems.map(item => renderWaitingListItem(item, '#fee2e2', '#ef4444', '✗ Rechazada'))}
+                  </div>
+                </div>
+              )}
+
+              {/* NO RESPONDIDAS */}
+              {notRespondedItems.length > 0 && (
+                <div style={{ marginBottom: '50px' }}>
+                  <h4 style={{ color: '#f97316', fontSize: '16px', fontWeight: '600', marginBottom: '15px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span>🔔</span> No respondidas (pendientes de segunda vuelta)
+                  </h4>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '15px' }}>
+                    {notRespondedItems.map(item => renderWaitingListItem(item, '#fff7ed', '#f97316', '🔔 No respondida'))}
                   </div>
                 </div>
               )}
