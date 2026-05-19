@@ -279,57 +279,6 @@ public class AppointmentService {
                 }
         }
 
-        @Transactional
-        private void cancelFutureAppointmentsSameSpecialty(Patient patient, Appointment assignedAppointment) {
-                // Obtener la especialidad con la que se acaba de asignar la cita
-                com.autocita.backend.doctor.Specialty specialty = assignedAppointment.getDoctor().getSpecialty();
-
-                // Obtener todas las citas del paciente
-                List<Appointment> allAppointments = appointmentRepository.findByPatientId(patient.getId());
-
-                // Filtrar: citas futuras, con la misma especialidad, y que no sean la cita
-                // recién asignada
-                LocalDateTime assignedTime = assignedAppointment.getStartTime();
-                List<Appointment> futureAppointmentsSameSpecialty = allAppointments.stream()
-                                .filter(apt -> apt.getStartTime().isAfter(assignedTime)) // Solo futuras
-                                .filter(apt -> apt.getDoctor().getSpecialty() == specialty) // Misma especialidad
-                                .filter(apt -> !apt.getId().equals(assignedAppointment.getId())) // No la recién
-                                                                                                 // asignada
-                                .filter(apt -> apt.getStatus() == AppointmentStatus.ASSIGNED) // Solo ASSIGNED
-                                .toList();
-
-                // Cancelar cada cita futura y relanzar algoritmo
-                for (Appointment futureAppointment : futureAppointmentsSameSpecialty) {
-                        System.out.println("🔄 CANCELANDO cita futura ID: " + futureAppointment.getId() +
-                                        " Fecha: " + futureAppointment.getStartTime() +
-                                        " Estado: " + futureAppointment.getStatus() +
-                                        " | Paciente ID: " + patient.getId() +
-                                        " | Especialidad: " + specialty +
-                                        " | Motivo: Consiguió cita anterior (mejor momento)");
-
-                        // Marcar como rechazada
-                        futureAppointment.setStatus(AppointmentStatus.REJECTED);
-                        futureAppointment.setNotes(
-                                        "Cancelada automáticamente: El paciente consiguió una cita anterior de la misma especialidad ("
-                                                        +
-                                                        "[" + assignedAppointment.getStartTime() + "]" +
-                                                        ") que es el objetivo por el que estaba en lista de espera");
-                        appointmentRepository.save(futureAppointment);
-
-                        // Guardar log de rechazo
-                        reassignmentService.guardarLog(
-                                        futureAppointment,
-                                        patient,
-                                        null,
-                                        "CANCELADA_POR_ASIGNACION_LISTA_ESPERA");
-
-                        // Relanzar algoritmo para intentar reasignar este hueco a otro paciente
-                        Appointment emptySlot = futureAppointment;
-                        emptySlot.setPatient(null);
-                        reassignmentService.procesarReasignacion(emptySlot, patient);
-                }
-        }
-
         /**
          * Procesa la respuesta del paciente a través del email usando un token
          * Este método es llamado cuando el paciente hace clic en los links del email

@@ -42,7 +42,13 @@ public class AppointmentController {
 
     @GetMapping("/patient/{patientId}")
     public ResponseEntity<List<Appointment>> getAppointmentsByPatient(@PathVariable Integer patientId) {
-        return ResponseEntity.ok(appointmentRepository.findByPatientId(patientId));
+        // Filtrar estados internos del sistema que no deben aparecer en las vistas del paciente
+        List<Appointment> filtered = appointmentRepository.findByPatientId(patientId).stream()
+            .filter(a -> a.getStatus() != AppointmentStatus.AVAILABLE
+                      && a.getStatus() != AppointmentStatus.NOT_RESPONDED
+                      && a.getStatus() != AppointmentStatus.REASSIGNING)
+            .collect(Collectors.toList());
+        return ResponseEntity.ok(filtered);
     }
 
     @GetMapping("/my-id")
@@ -75,8 +81,16 @@ public class AppointmentController {
                       || a.getStatus() == AppointmentStatus.REASSIGNING)
             .map(Appointment::getStartTime)
             .collect(Collectors.toSet());
+        // Si hay múltiples registros AVAILABLE para el mismo startTime, conservar solo uno
+        Set<LocalDateTime> seenAvailableTimes = new java.util.HashSet<>();
         List<Appointment> filtered = all.stream()
             .filter(a -> a.getStatus() != AppointmentStatus.AVAILABLE || !occupiedTimes.contains(a.getStartTime()))
+            .filter(a -> {
+                if (a.getStatus() == AppointmentStatus.AVAILABLE) {
+                    return seenAvailableTimes.add(a.getStartTime());
+                }
+                return true;
+            })
             .collect(Collectors.toList());
         return ResponseEntity.ok(filtered);
     }
