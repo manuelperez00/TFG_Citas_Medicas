@@ -67,6 +67,8 @@ public class DataInitializer implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) throws Exception {
+        waitingListRepository.deleteCorruptRecords();
+
         if (medicationRepository.count() == 0) {
             crearMedicamento(
                 "Ibuprofeno 600mg", "Ibuprofeno", "Antiinflamatorio",

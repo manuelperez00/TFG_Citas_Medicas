@@ -145,7 +145,7 @@ public class ReassignmentService {
         List<Integer> excluidos = reassignmentLogRepository.findRejectedPatientIdsByAppointment(hueco.getId());
 
         // Obtener candidatos de la lista de espera para esa especialidad
-        List<WaitingList> candidatos = waitingListRepository.findBySpecialty(hueco.getDoctor().getSpecialty());
+        List<WaitingList> candidatos = waitingListRepository.findActiveBySpecialty(hueco.getDoctor().getSpecialty());
 
         Optional<WaitingList> ganador = candidatos.stream()
                 // Filtro 1: Solo ACTIVE (no expirados, rechazados, etc.)

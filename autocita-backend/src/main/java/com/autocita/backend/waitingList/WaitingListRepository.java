@@ -15,6 +15,9 @@ import java.util.List;
 @Repository
 public interface WaitingListRepository extends JpaRepository<WaitingList, Integer> {
 
+        @Query("SELECT w FROM WaitingList w WHERE w.specialty = :specialty AND w.status = 'ACTIVE'")
+        List<WaitingList> findActiveBySpecialty(@Param("specialty") Specialty specialty);
+
         List<WaitingList> findBySpecialty(Specialty specialty);
 
         // Evitar que un paciente se apunte dos veces a la misma lista
@@ -47,4 +50,9 @@ public interface WaitingListRepository extends JpaRepository<WaitingList, Intege
 
         @Transactional
         void deleteByPatientIdAndSpecialty(Integer patientId, Specialty specialty);
+
+        @Modifying
+        @Transactional
+        @Query(value = "DELETE FROM waiting_list_entries WHERE status NOT IN ('ACTIVE','OFFERED','ACCEPTED','REJECTED','NOT_RESPONDED','EXPIRED','CANCELLED') OR status IS NULL OR status = ''", nativeQuery = true)
+        void deleteCorruptRecords();
 }
