@@ -23,8 +23,9 @@ public interface WaitingListRepository extends JpaRepository<WaitingList, Intege
         // Evitar que un paciente se apunte dos veces a la misma lista
         boolean existsByPatientIdAndSpecialty(Integer patientId, Specialty specialty);
 
-        // Buscar todas las solicitudes de un paciente
-        List<WaitingList> findByPatientId(Integer patientId);
+        // Buscar todas las solicitudes de un paciente (solo statuses válidos, evita registros corruptos)
+        @Query("SELECT w FROM WaitingList w WHERE w.patient.id = :patientId AND w.status IN ('ACTIVE','OFFERED','ACCEPTED','REJECTED','NOT_RESPONDED','EXPIRED','CANCELLED')")
+        List<WaitingList> findByPatientId(@Param("patientId") Integer patientId);
 
         @Query("SELECT w FROM WaitingList w WHERE w.patient.id = :patientId AND w.status = 'ACTIVE'")
         List<WaitingList> findActiveByPatientId(@Param("patientId") Integer patientId);
