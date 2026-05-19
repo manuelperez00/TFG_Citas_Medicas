@@ -1,7 +1,8 @@
 import React from 'react';
-import { translateStatus } from '../../utils/statusTranslations';
+import { translateStatus, isExpiredAvailable } from '../../utils/statusTranslations';
 
-const getStatusColor = (status) => {
+const getStatusColor = (status, expired = false) => {
+  if (expired) return '#94a3b8';
   switch(status) {
     case 'AVAILABLE':  return '#22c55e'; // verde   – libre
     case 'OFFERED':    return '#f59e0b'; // ámbar   – pendiente de confirmar
@@ -45,11 +46,13 @@ function AppointmentTable({ data, showActions, onConfirm, onBlock, onRowClick })
                 ) : app.patient ? (
                   <div style={{ fontWeight: '600', color: '#334155' }}>{app.patient.firstName} {app.patient.lastName}</div>
                 ) : (
-                  <span style={{ color: '#10b981', fontWeight: '600' }}>🟢 Disponible</span>
+                  isExpiredAvailable(app)
+                    ? <span style={{ color: '#94a3b8', fontWeight: '600' }}>⚪ Sin asignar</span>
+                    : <span style={{ color: '#10b981', fontWeight: '600' }}>🟢 Disponible</span>
                 )}
               </td>
               <td style={{ padding: '16px', verticalAlign: 'middle' }}>
-                <span style={{ padding: '4px 12px', borderRadius: '12px', color: 'white', fontSize: '0.7rem', fontWeight: '700', backgroundColor: getStatusColor(app.status) }}>{translateStatus(app.status)}</span>
+                <span style={{ padding: '4px 12px', borderRadius: '12px', color: 'white', fontSize: '0.7rem', fontWeight: '700', backgroundColor: getStatusColor(app.status, isExpiredAvailable(app)) }}>{isExpiredAvailable(app) ? 'Expirada' : translateStatus(app.status)}</span>
               </td>
             </tr>
           )) : (

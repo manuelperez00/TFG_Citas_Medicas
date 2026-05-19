@@ -14,3 +14,6 @@ export const STATUS_LABELS = {
 
 export const translateStatus = (status) =>
   STATUS_LABELS[status] || status;
+
+export const isExpiredAvailable = (appointment) =>
+  appointment.status === 'AVAILABLE' && new Date(appointment.startTime) < new Date();

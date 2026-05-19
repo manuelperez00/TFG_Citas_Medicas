@@ -273,8 +273,9 @@ function RatingSection({ appointment, authHeader }) {
 function AppointmentDetailModal({ appointment, onClose, role = 'patient', authHeader }) {
   if (!appointment) return null;
 
-  const statusLabel = STATUS_LABELS[appointment.status] || appointment.status;
-  const statusStyle = STATUS_COLORS[appointment.status] || { bg: '#f1f5f9', color: '#475569' };
+  const expired = appointment.status === 'AVAILABLE' && new Date(appointment.startTime) < new Date();
+  const statusLabel = expired ? 'Expirada' : (STATUS_LABELS[appointment.status] || appointment.status);
+  const statusStyle = expired ? { bg: '#f1f5f9', color: '#64748b' } : (STATUS_COLORS[appointment.status] || { bg: '#f1f5f9', color: '#475569' });
 
   const startDate = new Date(appointment.startTime);
   const endDate = new Date(startDate.getTime() + (appointment.durationMinutes || 60) * 60000);

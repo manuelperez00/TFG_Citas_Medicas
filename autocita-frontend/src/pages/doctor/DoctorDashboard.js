@@ -4,7 +4,7 @@ import DoctorStats from './DoctorStats';
 import AppointmentTable from './AppointmentTable';
 import DoctorProfile from './DoctorProfile';
 import { translateSpecialty } from '../../utils/specialtyTranslations';
-import { translateStatus } from '../../utils/statusTranslations';
+import { translateStatus, isExpiredAvailable } from '../../utils/statusTranslations';
 import DoctorReassignmentStats from './DoctorReassignmentStats';
 import AppointmentDetailModal from '../../components/AppointmentDetailModal';
 import History from './History';
@@ -576,11 +576,13 @@ function DoctorDashboard({ authHeader, doctorId, onLogout }) {
                 ) : app.patient ? (
                   <div style={styles.patientName}>{app.patient.firstName} {app.patient.lastName}</div>
                 ) : (
-                  <span style={styles.availableText}>🟢 Disponible</span>
+                  isExpiredAvailable(app)
+                    ? <span style={{ ...styles.availableText, color: '#94a3b8' }}>⚪ Sin asignar</span>
+                    : <span style={styles.availableText}>🟢 Disponible</span>
                 )}
               </td>
               <td style={styles.td}>
-                <span style={{ ...styles.badge, backgroundColor: getStatusColor(app.status) }}>{translateStatus(app.status)}</span>
+                <span style={{ ...styles.badge, backgroundColor: isExpiredAvailable(app) ? '#94a3b8' : getStatusColor(app.status) }}>{isExpiredAvailable(app) ? 'Expirada' : translateStatus(app.status)}</span>
               </td>
               {showActions && (
                 <td style={{...styles.td, textAlign: 'right'}}>
