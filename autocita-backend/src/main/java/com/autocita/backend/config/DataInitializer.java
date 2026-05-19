@@ -67,7 +67,9 @@ public class DataInitializer implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) throws Exception {
-        waitingListRepository.deleteCorruptRecords();
+        try {
+            waitingListRepository.deleteCorruptRecords();
+        } catch (Exception e) {}
 
         if (medicationRepository.count() == 0) {
             crearMedicamento(

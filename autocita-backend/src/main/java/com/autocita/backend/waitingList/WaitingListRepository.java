@@ -53,7 +53,7 @@ public interface WaitingListRepository extends JpaRepository<WaitingList, Intege
         void deleteByPatientIdAndSpecialty(Integer patientId, Specialty specialty);
 
         @Modifying
-        @Transactional
+        @org.springframework.transaction.annotation.Transactional(propagation = org.springframework.transaction.annotation.Propagation.REQUIRES_NEW)
         @Query(value = "DELETE FROM waiting_list_entries WHERE status NOT IN ('ACTIVE','OFFERED','ACCEPTED','REJECTED','NOT_RESPONDED','EXPIRED','CANCELLED') OR status IS NULL OR status = ''", nativeQuery = true)
         void deleteCorruptRecords();
 }
