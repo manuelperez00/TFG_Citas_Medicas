@@ -1,5 +1,7 @@
 package com.autocita.backend.waitingList;
 
+import com.autocita.backend.appointment.Appointment;
+import com.autocita.backend.appointment.AppointmentRepository;
 import com.autocita.backend.doctor.Specialty;
 import com.autocita.backend.patient.Patient;
 import com.autocita.backend.patient.PatientRepository;
@@ -10,7 +12,9 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/waiting-list")
@@ -25,6 +29,9 @@ public class WaitingListController {
     @Autowired
     private com.autocita.backend.reassignmentLog.ReassignmentService reassignmentService;
 
+    @Autowired
+    private AppointmentRepository appointmentRepository;
+
     @GetMapping("/patient/{patientId}")
     public ResponseEntity<WaitingListResponse> getMyWaitlist(@PathVariable Integer patientId) {
         // Primero, marcar como expiradas las que corresponda
@@ -33,13 +40,35 @@ public class WaitingListController {
         // Obtener todas las solicitudes del paciente
         List<WaitingList> todas = waitingListRepository.findByPatientId(patientId);
 
+        // Umbral de expiración de oferta: 15 minutos
+        LocalDateTime offerExpiryThreshold = LocalDateTime.now().minusMinutes(15);
+
+        // Separar OFFERED en válidas y expiradas (cuando el scheduler aún no ha procesado)
+        List<WaitingList> validOffered = new ArrayList<>();
+        List<WaitingList> expiredOffered = new ArrayList<>();
+        for (WaitingList w : todas.stream().filter(x -> x.getStatus() == WaitingListStatus.OFFERED).toList()) {
+            Optional<Appointment> offeredAppt = appointmentRepository.findOfferedByPatientAndSpecialty(patientId, w.getSpecialty());
+            boolean isExpired = offeredAppt.isEmpty()
+                    || (offeredAppt.get().getOfferedAt() != null && offeredAppt.get().getOfferedAt().isBefore(offerExpiryThreshold));
+            if (isExpired) {
+                expiredOffered.add(w);
+            } else {
+                validOffered.add(w);
+            }
+        }
+
+        // Las OFFERED expiradas se unen a notResponded (el scheduler las procesará pronto)
+        List<WaitingList> allNotResponded = new ArrayList<>();
+        allNotResponded.addAll(todas.stream().filter(w -> w.getStatus() == WaitingListStatus.NOT_RESPONDED).toList());
+        allNotResponded.addAll(expiredOffered);
+
         // Agrupar por estado
         WaitingListResponse response = new WaitingListResponse();
         response.setActive(todas.stream().filter(w -> w.getStatus() == WaitingListStatus.ACTIVE).toList());
-        response.setOffered(todas.stream().filter(w -> w.getStatus() == WaitingListStatus.OFFERED).toList());
+        response.setOffered(validOffered);
         response.setAccepted(todas.stream().filter(w -> w.getStatus() == WaitingListStatus.ACCEPTED).toList());
         response.setRejected(todas.stream().filter(w -> w.getStatus() == WaitingListStatus.REJECTED).toList());
-        response.setNotResponded(todas.stream().filter(w -> w.getStatus() == WaitingListStatus.NOT_RESPONDED).toList());
+        response.setNotResponded(allNotResponded);
         response.setExpired(todas.stream().filter(w -> w.getStatus() == WaitingListStatus.EXPIRED).toList());
         response.setCancelled(todas.stream().filter(w -> w.getStatus() == WaitingListStatus.CANCELLED).toList());
 
