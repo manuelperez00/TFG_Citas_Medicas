@@ -447,7 +447,7 @@ public class ReassignmentService {
         for (WaitingList w : registros) {
             // Si la fecha preferida ya pasó y sigue ACTIVE, marcar como EXPIRED
             if (w.getStatus() == com.autocita.backend.waitingList.WaitingListStatus.ACTIVE
-                    && w.getPreferredDate().isBefore(hoy)) {
+                    && w.getPreferredDate() != null && w.getPreferredDate().isBefore(hoy)) {
                 w.setStatus(com.autocita.backend.waitingList.WaitingListStatus.EXPIRED);
                 waitingListRepository.save(w);
             }

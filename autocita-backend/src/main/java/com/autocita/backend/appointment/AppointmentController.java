@@ -350,7 +350,7 @@ public class AppointmentController {
 
         // Verificar que NO hay citas ocupadas en el rango completo
         while (current.isBefore(endTime)) {
-            var appointmentOpt = appointmentRepository.findByDoctorIdAndStartTime(doctorId, current);
+            var appointmentOpt = appointmentRepository.findByDoctorIdAndStartTimeActiveOnly(doctorId, current);
 
             if (appointmentOpt.isPresent()) {
                 var existing = appointmentOpt.get();
@@ -370,7 +370,7 @@ public class AppointmentController {
         // Si pasó la validación, proceder a bloquear
         current = startTime;
         while (current.isBefore(endTime)) {
-            var appointmentOpt = appointmentRepository.findByDoctorIdAndStartTime(doctorId, current);
+            var appointmentOpt = appointmentRepository.findByDoctorIdAndStartTimeActiveOnly(doctorId, current);
 
             if (appointmentOpt.isPresent()) {
                 var existing = appointmentOpt.get();
