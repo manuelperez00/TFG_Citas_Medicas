@@ -33,8 +33,9 @@ public class AppointmentScheduler {
                 .findByStatusAndOfferedAtBefore(AppointmentStatus.OFFERED, limit);
 
         for (Appointment app : expiredAppointments) {
+            String patientEmail = app.getPatient() != null ? app.getPatient().getEmail() : "UNKNOWN";
             System.out.println("⏳ Oferta expirada para cita ID: " + app.getId() +
-                    " - Sin respuesta en 15 minutos de paciente: " + app.getPatient().getEmail());
+                    " - Sin respuesta en 15 minutos de paciente: " + patientEmail);
 
             // Cambiar estado a NOT_RESPONDED
             app.setStatus(AppointmentStatus.NOT_RESPONDED);

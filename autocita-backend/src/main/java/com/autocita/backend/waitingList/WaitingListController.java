@@ -131,6 +131,7 @@ public class WaitingListController {
         // se solapan en la ventana de búsqueda del sistema (día del hueco + día siguiente)
         List<WaitingList> entradasActivas = waitingListRepository.findActiveByPatientId(patientId);
         for (WaitingList activa : entradasActivas) {
+            if (activa.getPreferredDate() == null) continue;
             long diasEntre = Math.abs(ChronoUnit.DAYS.between(activa.getPreferredDate(), selectedDate));
             if (diasEntre <= 1) {
                 return ResponseEntity.badRequest().body(

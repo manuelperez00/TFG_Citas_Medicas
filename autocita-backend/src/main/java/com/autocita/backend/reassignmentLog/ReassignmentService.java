@@ -171,13 +171,13 @@ public class ReassignmentService {
 
                 // Filtro 7: Solo candidatos con fecha preferida EXACTAMENTE igual a la fecha buscada
                 // (mismo día del hueco o día siguiente, nunca días anteriores)
-                .filter(c -> c.getPreferredDate().equals(fechaBusqueda))
+                .filter(c -> c.getPreferredDate() != null && c.getPreferredDate().equals(fechaBusqueda))
 
                 // ORDENACIÓN DE PRIORIDAD
                 .sorted(Comparator
                         // 1º MÁXIMA PRIORIDAD: ¿Es la fecha EXACTA del hueco? (coincidencia = máxima
                         // prioridad)
-                        .comparing((WaitingList w) -> w.getPreferredDate().equals(fechaBusqueda),
+                        .comparing((WaitingList w) -> w.getPreferredDate() != null && w.getPreferredDate().equals(fechaBusqueda),
                                 Comparator.reverseOrder())
 
                         // 2º: Urgencia (HIGH -> MEDIUM -> LOW) - ANTES QUE CITAS PREVIAS
